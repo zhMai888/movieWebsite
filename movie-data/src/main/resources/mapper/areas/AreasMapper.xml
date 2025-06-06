@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.AreasMapper">
+    
+    <resultMap type="Areas" id="AreasResult">
+        <result property="id"    column="id"    />
+        <result property="areaname"    column="areaname"    />
+        <result property="novienum"    column="novienum"    />
+    </resultMap>
+
+    <sql id="selectAreasVo">
+        select id, areaname, novienum from areas
+    </sql>
+
+    <select id="selectAreasList" parameterType="Areas" resultMap="AreasResult">
+        <include refid="selectAreasVo"/>
+        <where>  
+            <if test="areaname != null  and areaname != ''"> and areaname like concat('%', #{areaname}, '%')</if>
+            <if test="novienum != null "> and novienum = #{novienum}</if>
+        </where>
+    </select>
+    
+    <select id="selectAreasById" parameterType="Long" resultMap="AreasResult">
+        <include refid="selectAreasVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertAreas" parameterType="Areas" useGeneratedKeys="true" keyProperty="id">
+        insert into areas
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="areaname != null and areaname != ''">areaname,</if>
+            <if test="novienum != null">novienum,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="areaname != null and areaname != ''">#{areaname},</if>
+            <if test="novienum != null">#{novienum},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAreas" parameterType="Areas">
+        update areas
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="areaname != null and areaname != ''">areaname = #{areaname},</if>
+            <if test="novienum != null">novienum = #{novienum},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAreasById" parameterType="Long">
+        delete from areas where id = #{id}
+    </delete>
+
+    <delete id="deleteAreasByIds" parameterType="String">
+        delete from areas where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

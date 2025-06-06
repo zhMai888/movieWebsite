@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.ActorsMapper">
+    
+    <resultMap type="Actors" id="ActorsResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="photourl"    column="photourl"    />
+        <result property="resume"    column="resume"    />
+    </resultMap>
+
+    <sql id="selectActorsVo">
+        select id, name, photourl, resume from actors
+    </sql>
+
+    <select id="selectActorsList" parameterType="Actors" resultMap="ActorsResult">
+        <include refid="selectActorsVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectActorsById" parameterType="Long" resultMap="ActorsResult">
+        <include refid="selectActorsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertActors" parameterType="Actors" useGeneratedKeys="true" keyProperty="id">
+        insert into actors
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="photourl != null">photourl,</if>
+            <if test="resume != null">resume,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="photourl != null">#{photourl},</if>
+            <if test="resume != null">#{resume},</if>
+         </trim>
+    </insert>
+
+    <update id="updateActors" parameterType="Actors">
+        update actors
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="photourl != null">photourl = #{photourl},</if>
+            <if test="resume != null">resume = #{resume},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteActorsById" parameterType="Long">
+        delete from actors where id = #{id}
+    </delete>
+
+    <delete id="deleteActorsByIds" parameterType="String">
+        delete from actors where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteMovie_ActorByActorIds" parameterType="String">
+        delete from movie_actor where actor_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

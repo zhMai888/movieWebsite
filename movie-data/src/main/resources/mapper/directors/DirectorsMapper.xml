@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.DirectorsMapper">
+    
+    <resultMap type="Directors" id="DirectorsResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="photourl"    column="photourl"    />
+        <result property="resume"    column="resume"    />
+    </resultMap>
+
+    <sql id="selectDirectorsVo">
+        select id, name, photourl, resume from directors
+    </sql>
+
+    <select id="selectDirectorsList" parameterType="Directors" resultMap="DirectorsResult">
+        <include refid="selectDirectorsVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectDirectorsById" parameterType="Long" resultMap="DirectorsResult">
+        <include refid="selectDirectorsVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertDirectors" parameterType="Directors" useGeneratedKeys="true" keyProperty="id">
+        insert into directors
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="photourl != null">photourl,</if>
+            <if test="resume != null">resume,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="photourl != null">#{photourl},</if>
+            <if test="resume != null">#{resume},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDirectors" parameterType="Directors">
+        update directors
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="photourl != null">photourl = #{photourl},</if>
+            <if test="resume != null">resume = #{resume},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDirectorsById" parameterType="Long">
+        delete from directors where id = #{id}
+    </delete>
+
+    <delete id="deleteDirectorsByIds" parameterType="String">
+        delete from directors where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteMovie_DirectorByDirectorIds" parameterType="String">
+        delete from movie_director where director_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

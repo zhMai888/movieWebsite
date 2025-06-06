@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.MoviesMapper">
+
+    <resultMap id="MovieShowResult" type="MovieShow">
+        <id property="id" column="movie_id"/>
+        <result property="name" column="name"/>
+        <result property="releaseDate" column="release_date"/>
+        <result property="areaId" column="area_id"/>
+        <result property="genreId" column="genre_id"/>
+        <result property="count" column="count"/>
+        <result property="weekcount" column="weekcount"/>
+        <result property="monthcount" column="monthcount"/>
+        <result property="see" column="see"/>
+        <result property="description" column="description"/>
+        <result property="scoreTotal" column="score_total"/>
+        <result property="scoreCount" column="score_count"/>
+        <result property="coverurl" column="coverurl"/>
+        <result property="movieurl" column="movieurl"/>
+
+        <collection property="actorList" ofType="Actors">
+            <result property="id" column="actor_id"/>
+            <result property="name" column="actor_name"/>
+            <result property="photourl" column="actor_photourl"/>
+        </collection>
+
+        <collection property="directorList" ofType="Directors">
+            <result property="id" column="director_id"/>
+            <result property="name" column="director_name"/>
+            <result property="photourl" column="director_photourl"/>
+        </collection>
+    </resultMap>
+
+    <resultMap type="Movies" id="MoviesResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="releaseDate" column="release_date"/>
+        <result property="areaId"    column="area_id"    />
+        <result property="genreId"    column="genre_id"    />
+        <result property="count"    column="count"    />
+        <result property="weekcount"    column="weekcount"    />
+        <result property="monthcount"    column="monthcount"    />
+        <result property="see"    column="see"    />
+        <result property="description"    column="description"    />
+        <result property="scoreTotal"    column="score_total"    />
+        <result property="scoreCount"    column="score_count"    />
+        <result property="coverurl"    column="coverurl"    />
+        <result property="movieurl" column="movieurl"/>
+
+    </resultMap>
+
+    <resultMap type="Areas" id="AreasResult">
+        <result property="id"    column="id"    />
+        <result property="areaname"    column="areaname"    />
+        <result property="novienum"    column="novienum"    />
+    </resultMap>
+
+    <resultMap type="Genres" id="GenresResult">
+        <result property="id"    column="id"    />
+        <result property="type"    column="type"    />
+        <result property="nums"    column="nums"    />
+    </resultMap>
+
+    <resultMap type="Actors" id="ActorsResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="photourl"    column="photourl"    />
+        <result property="resume"    column="resume"    />
+    </resultMap>
+
+    <resultMap type="Directors" id="DirectorsResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="photourl"    column="photourl"    />
+        <result property="resume"    column="resume"    />
+    </resultMap>
+
+    <sql id="selectMoviesVo">
+        select id, name, release_date, area_id, genre_id, count, weekcount, monthcount, see, description, score_total, score_count, coverurl, movieurl from movies
+    </sql>
+
+    <!-- 1. 分页获取符合条件的电影ID列表 -->
+    <select id="selectMovieIdsByCondition" resultType="long" parameterType="map">
+        SELECT DISTINCT m.id
+        FROM movies m
+        <where>
+            <if test="movies != null and movies.name != null and movies.name != ''">
+                AND m.name LIKE CONCAT('%', #{movies.name}, '%')
+            </if>
+            <choose>
+                <when test="releaseDateStart != null and releaseDateEnd != null">
+                    AND m.release_date BETWEEN #{releaseDateStart} AND #{releaseDateEnd}
+                </when>
+                <otherwise>
+                    <choose>
+                        <when test="movies != null and movies.releaseDate != null and movies.releaseDate != -1">
+                            AND m.release_date = #{movies.releaseDate}
+                        </when>
+                        <when test="movies != null and movies.releaseDate == -1">
+                            AND (m.release_date IS NULL OR m.release_date = '未知' OR m.release_date NOT REGEXP '^[0-9]{4}$')
+                        </when>
+                    </choose>
+                </otherwise>
+            </choose>
+            <if test="movies != null and movies.areaId != null">
+                AND m.area_id = #{movies.areaId}
+            </if>
+            <if test="movies != null and movies.genreId != null">
+                AND m.genre_id = #{movies.genreId}
+            </if>
+            <if test="countList != null and countList.beginCount != null and countList.endCount != null">
+                AND m.count BETWEEN #{countList.beginCount} AND #{countList.endCount}
+            </if>
+            <if test="countList != null and countList.beginWeekCount != null and countList.endWeekCount != null">
+                AND m.weekcount BETWEEN #{countList.beginWeekCount} AND #{countList.endWeekCount}
+            </if>
+            <if test="countList != null and countList.beginMonthCount != null and countList.endMonthCount != null">
+                AND m.monthcount BETWEEN #{countList.beginMonthCount} AND #{countList.endMonthCount}
+            </if>
+            <if test="movies != null and movies.see != null">
+                AND m.see = #{movies.see}
+            </if>
+            <if test="directors != null and directors != ''">
+                AND (
+                SELECT COUNT(DISTINCT md2.director_id)
+                FROM movie_director md2
+                WHERE md2.movie_id = m.id AND FIND_IN_SET(md2.director_id, #{directors})
+                ) = #{directorCount}
+            </if>
+
+            <if test="actors != null and actors != ''">
+                AND (
+                SELECT COUNT(DISTINCT ma2.actor_id)
+                FROM movie_actor ma2
+                WHERE ma2.movie_id = m.id AND FIND_IN_SET(ma2.actor_id, #{actors})
+                ) = #{actorCount}
+            </if>
+        </where>
+    </select>
+
+    <!-- 2. 根据ID列表查询电影详情（JOIN 演员、导演） -->
+    <select id="selectMoviesByIds" resultMap="MovieShowResult" parameterType="map">
+        SELECT
+        m.id AS movie_id, m.name, m.release_date, m.area_id, m.genre_id, m.count, m.weekcount,
+        m.monthcount, m.see, m.description, m.score_total, m.score_count, m.coverurl, m.movieurl,
+
+        a.id AS actor_id, a.name AS actor_name, a.photourl AS actor_photourl,
+        d.id AS director_id, d.name AS director_name, d.photourl AS director_photourl
+
+        FROM movies m
+        LEFT JOIN movie_actor ma ON ma.movie_id = m.id
+        LEFT JOIN actors a ON a.id = ma.actor_id
+        LEFT JOIN movie_director md ON md.movie_id = m.id
+        LEFT JOIN directors d ON d.id = md.director_id
+
+        WHERE m.id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectMoviesById" parameterType="Long" resultMap="MoviesResult">
+        <include refid="selectMoviesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertMovies" parameterType="Movies" useGeneratedKeys="true" keyProperty="id">
+        insert into movies
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="releaseDate != null">release_date,</if>
+            <if test="areaId != null">area_id,</if>
+            <if test="genreId != null">genre_id,</if>
+            count,
+            weekcount,
+            monthcount,
+            see,
+            <if test="description != null">description,</if>
+            score_total,
+            score_count,
+            <if test="coverurl != null">coverurl,</if>
+            <if test="movieurl != null">movieurl,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="releaseDate != null">#{releaseDate},</if>
+            <if test="areaId != null">#{areaId},</if>
+            <if test="genreId != null">#{genreId},</if>
+            <choose>
+                <when test="count != null">#{count},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <choose>
+                <when test="weekcount != null">#{weekcount},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <choose>
+                <when test="monthcount != null">#{monthcount},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <choose>
+                <when test="see != null">#{see},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <if test="description != null">#{description},</if>
+            <choose>
+                <when test="scoreTotal != null">#{scoreTotal},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <choose>
+                <when test="scoreCount != null">#{scoreCount},</when>
+                <otherwise>0,</otherwise>
+            </choose>
+            <if test="coverurl != null">#{coverurl},</if>
+            <if test="movieurl != null">#{movieurl},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMovies" parameterType="Movies">
+        update movies
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="releaseDate != null">release_date = #{releaseDate},</if>
+            <if test="areaId != null">area_id = #{areaId},</if>
+            <if test="genreId != null">genre_id = #{genreId},</if>
+            <if test="count != null">count = #{count},</if>
+            <if test="weekcount != null">weekcount = #{weekcount},</if>
+            <if test="monthcount != null">monthcount = #{monthcount},</if>
+            <if test="see != null">see = #{see},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="scoreTotal != null">score_total = #{scoreTotal},</if>
+            <if test="scoreCount != null">score_count = #{scoreCount},</if>
+            <if test="coverurl != null">coverurl = #{coverurl},</if>
+            <if test="movieurl != null">movieurl = #{movieurl},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+
+
+    <delete id="deleteMovieActors" parameterType="long">
+        delete from movie_actor where movie_id = #{movieId}
+    </delete>
+
+    <insert id="insertMovieActors">
+        insert into movie_actor(movie_id, actor_id)
+        values
+        <foreach collection="list" item="actorId" separator=",">
+            (#{movieId}, #{actorId})
+        </foreach>
+    </insert>
+
+
+
+    <delete id="deleteMovieDirectors" parameterType="long">
+        delete from movie_director where movie_id = #{movieId}
+    </delete>
+
+    <insert id="insertMovieDirectors">
+        insert into movie_director(movie_id, director_id)
+        values
+        <foreach collection="list" item="directorId" separator=",">
+            (#{movieId}, #{directorId})
+        </foreach>
+    </insert>
+
+
+    <delete id="deleteMoviesById" parameterType="Long">
+        delete from movies where id = #{id}
+    </delete>
+
+    <delete id="deleteMoviesByIds" parameterType="String">
+        delete from movies where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <select id="selectAreasList" parameterType="String" resultMap="AreasResult">
+            select id, areaname, novienum from areas
+    </select>
+
+    <select id="selectGenresList" parameterType="String" resultMap="GenresResult">
+        select id, type, nums from genres
+    </select>
+    
+    <select id="selectActorsList" parameterType="String" resultMap="ActorsResult">
+        select id, name, photourl from actors
+    </select>
+
+    <select id="selectDirectorsList" parameterType="String" resultMap="DirectorsResult">
+        select id, name, photourl from directors
+    </select>
+
+    <select id="selectAreaById" parameterType="Long" resultMap="AreasResult">
+        select areaname from areas where id = #{id}
+    </select>
+
+    <select id="selectGenreById" parameterType="Long" resultMap="GenresResult">
+        select type from genres where id = #{id}
+    </select>
+
+    <update id="updateGenreNums">
+        update genres
+        set nums = nums + #{nums}
+        where id = #{id}
+    </update>
+
+    <update id="updateAreaNums">
+        update areas
+        set novienum = novienum + #{novienum}
+        where id = #{id}
+    </update>
+
+    <update id="resetWeekCount">
+        update movies
+        set weekcount = 0
+        where weekcount > 0
+    </update>
+
+    <update id="resetMonthCount">
+        update movies
+        set monthcount = 0
+        where monthcount > 0
+    </update>
+    
+    <delete id="deleteMovieCollectionsByIds">
+        delete from collections where movie_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

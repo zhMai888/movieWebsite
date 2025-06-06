@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.CollectionsMapper">
+
+    <resultMap type="Movies" id="MoviesResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="releaseDate" column="release_date"/>
+        <result property="areaId"    column="area_id"    />
+        <result property="genreId"    column="genre_id"    />
+        <result property="count"    column="count"    />
+        <result property="weekcount"    column="weekcount"    />
+        <result property="monthcount"    column="monthcount"    />
+        <result property="see"    column="see"    />
+        <result property="description"    column="description"    />
+        <result property="scoreTotal"    column="score_total"    />
+        <result property="scoreCount"    column="score_count"    />
+        <result property="coverurl"    column="coverurl"    />
+        <result property="movieurl" column="movieurl"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="MoviesResult">
+        select movies.*
+        from collections
+                 inner join movies on collections.movie_id = movies.id
+        where collections.user_id = #{userId};
+    </select>
+    
+    <insert id="addById">
+        insert into collections (user_id, movie_id)
+        values (#{userId}, #{movieId});
+    </insert>
+
+    <delete id="deleteById">
+        delete from collections
+        where user_id = #{userId} and movie_id = #{movieId};
+    </delete>
+
+</mapper>
