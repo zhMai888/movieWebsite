@@ -608,7 +608,7 @@ export default {
 
       this.queryParams.releaseDateStart = null
       this.queryParams.releaseDateEnd = null
-      // console.log(this.queryParams);
+      console.log(this.queryParams);
       
       listMovies(this.queryParams).then(response => {
 
