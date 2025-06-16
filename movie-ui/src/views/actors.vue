@@ -2,8 +2,14 @@
   <div class="actor-container">
     <Navigation />
     <div class="actor-main-content">
+      <!-- 搜索提示 -->
+      <div v-if="isSearchMode" class="search-tips">
+        搜索演员: <strong>{{ searchKeyword }}</strong>
+        <button class="clear-search" @click="clearSearch">清除搜索</button>
+      </div>
+
       <!-- 演员卡片网格 -->
-      <div class="person-grid" v-if="!initialLoading">
+      <div class="person-grid" v-if="!initialLoading && displayActors.length > 0">
         <div
           class="person-card-wrapper"
           v-for="actor in displayActors"
@@ -11,6 +17,13 @@
         >
           <PeopleGrid :people="[actor]"/>
         </div>
+      </div>
+
+      <!-- 空状态提示 -->
+      <div v-if="!initialLoading && displayActors.length === 0" class="empty-state">
+        <div class="empty-icon">👤</div>
+        <p v-if="isSearchMode">没有找到与"{{ searchKeyword }}"相关的演员</p>
+        <p v-else>暂无演员数据</p>
       </div>
 
       <!-- 加载更多提示 -->
@@ -53,13 +66,49 @@ export default {
       initialLoading: true,
       loadingMore: false,
       currentPage: 1,
-      pageSize: 12, // 每页加载数量适当增加
+      pageSize: 12,
       hasMore: true,
       showBottomLine: false,
-      isFetching: false
+      isFetching: false,
+      searchKeyword: '',
+      isSearchMode: false
+    }
+  },
+  watch: {
+    // 监听路由参数变化
+    '$route.query': {
+      immediate: true,
+      handler(newQuery) {
+        this.handleRouteQueryChange(newQuery)
+      }
     }
   },
   methods: {
+    // 处理路由参数变化
+    handleRouteQueryChange(query) {
+      if (query.actor) {
+        // 搜索模式
+        this.searchKeyword = query.actor
+        this.isSearchMode = true
+        this.resetList()
+        this.loadSearchResults(query.actor)
+      } else {
+        // 普通列表模式
+        this.isSearchMode = false
+        this.resetList()
+        this.loadActors()
+      }
+    },
+
+    // 重置列表状态
+    resetList() {
+      this.currentPage = 1
+      this.allActors = []
+      this.displayActors = []
+      this.hasMore = true
+      this.showBottomLine = false
+    },
+
     // 加载演员数据
     async loadActors() {
       if (this.isFetching || !this.hasMore) return
@@ -75,16 +124,7 @@ export default {
           pageSize: this.pageSize
         })
 
-        const newActors = res["rows"] || []
-        this.allActors = [...this.allActors, ...newActors]
-        this.displayActors = this.allActors
-
-        this.hasMore = newActors.length >= this.pageSize
-        this.currentPage++
-
-        if (!this.hasMore) {
-          this.showBottomLine = true
-        }
+        this.handleDataLoaded(res["rows"] || [])
       } catch (error) {
         console.error('加载演员数据失败:', error)
       } finally {
@@ -94,11 +134,53 @@ export default {
       }
     },
 
+    // 加载搜索结果 - 使用listActors接口并传递name参数
+    async loadSearchResults(keyword) {
+      if (this.isFetching) return
+
+      this.isFetching = true
+      this.initialLoading = true
+
+      try {
+        const res = await listActors({
+          name: keyword,  // 根据后端SQL，使用name参数进行模糊查询
+          pageNum: this.currentPage,
+          pageSize: this.pageSize
+        })
+
+        this.handleDataLoaded(res["rows"] || [])
+      } catch (error) {
+        console.error('搜索演员失败:', error)
+      } finally {
+        this.initialLoading = false
+        this.isFetching = false
+      }
+    },
+
+    // 处理加载的数据
+    handleDataLoaded(newActors) {
+      this.allActors = [...this.allActors, ...newActors]
+      this.displayActors = this.allActors
+      this.hasMore = newActors.length >= this.pageSize
+      this.currentPage++
+
+      if (!this.hasMore) {
+        this.showBottomLine = true
+      }
+    },
+
+    // 清除搜索
+    clearSearch() {
+      this.$router.replace({ query: {} })
+    },
+
     // 检查滚动位置
     checkScroll() {
+      if (this.isSearchMode) return // 搜索模式下不启用无限滚动
+
       const scrollPosition = window.innerHeight + window.scrollY
       const documentHeight = document.body.offsetHeight
-      const threshold = 100 // 提前100px加载
+      const threshold = 100
 
       if (documentHeight - scrollPosition < threshold && this.hasMore && !this.loadingMore) {
         this.loadActors()
@@ -116,7 +198,6 @@ export default {
     }
   },
   async created() {
-    await this.loadActors()
     this.initScrollListener()
   },
   beforeDestroy() {
@@ -217,5 +298,41 @@ export default {
   background: #fff;
   position: relative;
   top: -12px;
+}
+
+/*搜索功能*/
+.search-tips {
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clear-search {
+  padding: 4px 8px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.clear-search:hover {
+  background-color: #f0f0f0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 </style>

@@ -47,18 +47,18 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/Category',
+    path: '/category',
     component: () => import('@/views/Category'),
     hidden: true
   },
   {
-    path: '/actor',
-    component: () => import('@/views/actors.vue'),
+    path: '/actors',
+    component: () => import('@/views/actors'),
     hidden: true
   },
   {
-    path: '/director',
-    component: () => import('@/views/directors.vue'),
+    path: '/directors',
+    component: () => import('@/views/directors'),
     hidden: true
   },
   {

@@ -22,12 +22,12 @@
           active-class="active-link"
         >电影排行</router-link>
         <router-link
-          to="/actor"
+          to="/actors"
           class="nav-link"
           active-class="active-link"
         >演员列表</router-link>
         <router-link
-          to="/director"
+          to="/directors"
           class="nav-link"
           active-class="active-link"
         >导演列表</router-link>
@@ -38,7 +38,7 @@
         <input
           ref="searchInput"
           class="search-input"
-          placeholder="输入电影名"
+          :placeholder="searchPlaceholder"
           v-model="keyword"
           @keyup.enter="handleSearch"
           @focus="showHistory = true"
@@ -63,7 +63,7 @@
               class="history-item"
               @mousedown="selectHistory(item)"
             >
-              {{ item }}
+              {{ item.keyword }} ({{ getTypeName(item.type) }})
             </div>
             <div class="clear-history" @mousedown="clearHistory">清除历史记录</div>
           </template>
@@ -82,9 +82,15 @@
   </header>
 </template>
 
-
 <script>
 import userAvatar from '@/assets/images/profile.jpg';
+
+// 搜索类型常量
+const SEARCH_TYPE = {
+  MOVIE: 'movie',
+  ACTOR: 'actor',
+  DIRECTOR: 'director'
+};
 
 export default {
   data() {
@@ -96,12 +102,28 @@ export default {
       searchHistory: []
     };
   },
+  computed: {
+    // 根据当前路由动态设置搜索框placeholder
+    searchPlaceholder() {
+      const route = this.$route.path;
+      if (route.includes('/actors')) return '输入演员名称';
+      if (route.includes('/directors')) return '输入导演名称';
+      return '输入电影名称';
+    },
+    // 根据当前路由确定搜索类型
+    currentSearchType() {
+      const route = this.$route.path;
+      if (route.includes('/actors')) return SEARCH_TYPE.ACTOR;
+      if (route.includes('/directors')) return SEARCH_TYPE.DIRECTOR;
+      return SEARCH_TYPE.MOVIE;
+    }
+  },
   created() {
     this.loadSearchHistory();
   },
   mounted() {
-    this.clickOutsideListener = (event) =>{
-      if (!this.$refs.searchContainer.contains(event.target)){
+    this.clickOutsideListener = (event) => {
+      if (!this.$refs.searchContainer.contains(event.target)) {
         this.showHistory = false;
       }
     };
@@ -109,27 +131,73 @@ export default {
   },
   beforeDestroy() {
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener)
+      document.removeEventListener('click', this.clickOutsideListener);
     }
   },
   methods: {
+    // 获取类型名称用于显示
+    getTypeName(type) {
+      const names = {
+        [SEARCH_TYPE.MOVIE]: '电影',
+        [SEARCH_TYPE.ACTOR]: '演员',
+        [SEARCH_TYPE.DIRECTOR]: '导演'
+      };
+      return names[type] || '';
+    },
+
     handleSearch() {
       if (!this.keyword.trim()) return;
 
-      // 保存搜索记录
-      this.saveSearchHistory(this.keyword);
+      const searchType = this.currentSearchType;
+      const query = {};
 
-      // 跳转到分类页并传递搜索参数
-      this.$router.push({
-        path: '/category',
-        query: {
-          search: this.keyword
-        }
-      });
+      // 根据搜索类型设置不同的查询参数
+      switch(searchType) {
+        case SEARCH_TYPE.ACTOR:
+          query.actor = this.keyword;
+          break;
+        case SEARCH_TYPE.DIRECTOR:
+          query.director = this.keyword;
+          break;
+        default:
+          query.search = this.keyword;
+      }
 
-      // 取消搜索框聚焦
+      // 保存搜索记录（包含类型信息）
+      this.saveSearchHistory(this.keyword, searchType);
+
+      // 如果已经在目标页面，则只更新查询参数
+      if (this.isInTargetPage(searchType)) {
+        this.$router.replace({ query });
+      } else {
+        // 否则跳转到对应类型的默认页面
+        this.navigateToSearchPage(searchType, query);
+      }
+
       this.$refs.searchInput.blur();
       this.showHistory = false;
+    },
+
+    // 判断是否已经在目标页面
+    isInTargetPage(searchType) {
+      const currentPath = this.$route.path;
+      switch(searchType) {
+        case SEARCH_TYPE.ACTOR:
+          return currentPath.includes('/actor');
+        case SEARCH_TYPE.DIRECTOR:
+          return currentPath.includes('/director');
+        default:
+          return currentPath.includes('/category') || currentPath.includes('/rankings');
+      }
+    },
+
+    // 导航到对应类型的搜索页面
+    navigateToSearchPage(searchType, query) {
+      let path = '/category'; // 电影搜索默认到分类页
+      if (searchType === SEARCH_TYPE.ACTOR) path = '/actors';
+      if (searchType === SEARCH_TYPE.DIRECTOR) path = '/directors';
+
+      this.$router.push({ path, query });
     },
 
     loadSearchHistory() {
@@ -137,21 +205,26 @@ export default {
       this.searchHistory = history ? JSON.parse(history) : [];
     },
 
-    saveSearchHistory(keyword) {
-      // 去重
-      let history = this.searchHistory.filter(item => item !== keyword);
+    saveSearchHistory(keyword, type) {
+      // 去重（同时比较关键词和类型）
+      let history = this.searchHistory.filter(
+        item => !(item.keyword === keyword && item.type === type)
+      );
+
       // 添加到开头
-      history.unshift(keyword);
+      history.unshift({ keyword, type });
+
       // 保留最多5条
       if (history.length > 5) {
         history = history.slice(0, 5);
       }
+
       this.searchHistory = history;
       localStorage.setItem('movieSearchHistory', JSON.stringify(history));
     },
 
     selectHistory(item) {
-      this.keyword = item;
+      this.keyword = item.keyword;
       this.handleSearch();
     },
 
@@ -159,12 +232,12 @@ export default {
       this.searchHistory = [];
       localStorage.removeItem('movieSearchHistory');
       this.showHistory = false;
-      this.$refs.searchInput.blur();  // 取消聚焦
+      this.$refs.searchInput.blur();
     },
 
     showNoHistoryAlert() {
       alert("没有搜索记录");
-      this.$refs.searchInput.blur();  // 取消聚焦
+      this.$refs.searchInput.blur();
     }
   }
 };
