@@ -549,7 +549,7 @@ export default {
     /** 分配用户操作 */
     handleAuthUser: function(row) {
       const roleId = row.roleId
-      this.$router.push("/system/role-auth/user/" + roleId)
+      this.$router.push("/system/role-auth/user.vue/" + roleId)
     },
     /** 提交按钮 */
     submitForm: function() {

@@ -15,21 +15,28 @@
           to="/category"
           class="nav-link"
           active-class="active-link"
+          exact
         >电影分类</router-link>
+
         <router-link
           to="/rankings"
           class="nav-link"
           active-class="active-link"
+          exact
         >电影排行</router-link>
+
         <router-link
           to="/actors"
           class="nav-link"
           active-class="active-link"
+          exact
         >演员列表</router-link>
+
         <router-link
           to="/directors"
           class="nav-link"
           active-class="active-link"
+          exact
         >导演列表</router-link>
       </nav>
 
@@ -75,7 +82,7 @@
       </div>
 
       <!-- 用户头像 -->
-      <router-link to="/account" class="user-avatar">
+      <router-link to="/user" class="user-avatar">
         <img :src="userAvatar" alt="用户头像" class="avatar-image" />
       </router-link>
     </div>
@@ -302,6 +309,11 @@ export default {
 
 .nav-link:hover {
   color: white;
+}
+
+.nav-link.active-link {
+  color: white;
+  font-weight: bold;
 }
 
 /* 搜索框样式 */

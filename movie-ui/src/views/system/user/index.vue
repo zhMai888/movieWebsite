@@ -39,19 +39,19 @@
 
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd" v-hasPermi="['system:user:add']">新增</el-button>
+                <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd" v-hasPermi="['system:user.vue:add']">新增</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate" v-hasPermi="['system:user:edit']">修改</el-button>
+                <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate" v-hasPermi="['system:user.vue:edit']">修改</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete" v-hasPermi="['system:user:remove']">删除</el-button>
+                <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple" @click="handleDelete" v-hasPermi="['system:user.vue:remove']">删除</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="info" plain icon="el-icon-upload2" size="mini" @click="handleImport" v-hasPermi="['system:user:import']">导入</el-button>
+                <el-button type="info" plain icon="el-icon-upload2" size="mini" @click="handleImport" v-hasPermi="['system:user.vue:import']">导入</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" v-hasPermi="['system:user:export']">导出</el-button>
+                <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" v-hasPermi="['system:user.vue:export']">导出</el-button>
               </el-col>
               <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
             </el-row>
@@ -75,13 +75,13 @@
               </el-table-column>
               <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
                 <template slot-scope="scope" v-if="scope.row.userId !== 1">
-                  <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:user:edit']">修改</el-button>
-                  <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)" v-hasPermi="['system:user:remove']">删除</el-button>
-                  <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)" v-hasPermi="['system:user:resetPwd', 'system:user:edit']">
+                  <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:user.vue:edit']">修改</el-button>
+                  <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)" v-hasPermi="['system:user.vue:remove']">删除</el-button>
+                  <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)" v-hasPermi="['system:user.vue:resetPwd', 'system:user.vue:edit']">
                     <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
                     <el-dropdown-menu slot="dropdown">
-                      <el-dropdown-item command="handleResetPwd" icon="el-icon-key" v-hasPermi="['system:user:resetPwd']">重置密码</el-dropdown-item>
-                      <el-dropdown-item command="handleAuthRole" icon="el-icon-circle-check" v-hasPermi="['system:user:edit']">分配角色</el-dropdown-item>
+                      <el-dropdown-item command="handleResetPwd" icon="el-icon-key" v-hasPermi="['system:user.vue:resetPwd']">重置密码</el-dropdown-item>
+                      <el-dropdown-item command="handleAuthRole" icon="el-icon-circle-check" v-hasPermi="['system:user.vue:edit']">分配角色</el-dropdown-item>
                     </el-dropdown-menu>
                   </el-dropdown>
                 </template>
@@ -326,7 +326,7 @@ export default {
   created() {
     this.getList()
     this.getDeptTree()
-    this.getConfigKey("sys.user.initPassword").then(response => {
+    this.getConfigKey("sys.user.vue.initPassword").then(response => {
       this.initPassword = response.msg
     })
   },
@@ -484,7 +484,7 @@ export default {
     /** 分配角色操作 */
     handleAuthRole: function(row) {
       const userId = row.userId
-      this.$router.push("/system/user-auth/role/" + userId)
+      this.$router.push("/system/user.vue-auth/role/" + userId)
     },
     /** 提交按钮 */
     submitForm: function() {
