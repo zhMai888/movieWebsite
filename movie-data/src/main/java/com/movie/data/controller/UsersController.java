@@ -25,7 +25,7 @@ import com.movie.common.core.page.TableDataInfo;
  * 用户表Controller
  * 
  * @author ruoyi
- * @date 2025-05-24
+ * @date 2025-06-17
  */
 @RestController
 @RequestMapping("/users/users")

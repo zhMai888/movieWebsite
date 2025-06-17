@@ -12,16 +12,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="phone"    column="phone"    />
         <result property="gender"    column="gender"    />
         <result property="userType"    column="user_type"    />
+        <result property="userurl"    column="userurl"    />
     </resultMap>
 
     <sql id="selectUsersVo">
-        select id, username, password, email, phone, gender, user_type from users
+        select id, username, password, email, phone, gender, user_type, userurl from users
     </sql>
 
     <select id="selectUsersList" parameterType="Users" resultMap="UsersResult">
         <include refid="selectUsersVo"/>
         <where>  
             <if test="username != null  and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="password != null  and password != ''"> and password = #{password}</if>
             <if test="email != null  and email != ''"> and email like concat('%', #{email}, '%')</if>
             <if test="phone != null  and phone != ''"> and phone like concat('%', #{phone}, '%')</if>
             <if test="gender != null "> and gender = #{gender}</if>
@@ -43,6 +45,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="phone != null">phone,</if>
             <if test="gender != null">gender,</if>
             <if test="userType != null">user_type,</if>
+            <if test="userurl != null">userurl,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="username != null and username != ''">#{username},</if>
@@ -51,6 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="phone != null">#{phone},</if>
             <if test="gender != null">#{gender},</if>
             <if test="userType != null">#{userType},</if>
+            <if test="userurl != null">#{userurl},</if>
          </trim>
     </insert>
 
@@ -63,6 +67,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="phone != null">phone = #{phone},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="userType != null">user_type = #{userType},</if>
+            <if test="userurl != null">userurl = #{userurl},</if>
         </trim>
         where id = #{id}
     </update>

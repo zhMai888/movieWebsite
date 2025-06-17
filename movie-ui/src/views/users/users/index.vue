@@ -9,6 +9,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input
+          v-model="queryParams.password"
+          placeholder="请输入密码"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="邮箱" prop="email">
         <el-input
           v-model="queryParams.email"
@@ -25,8 +33,8 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="性别" prop="gender">
-        <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
+      <el-form-item label="性别(0男1女)" prop="gender">
+        <el-select v-model="queryParams.gender" placeholder="请选择性别(0男1女)" clearable>
           <el-option
             v-for="dict in dict.type.sex"
             :key="dict.value"
@@ -35,8 +43,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="vip" prop="userType">
-        <el-select v-model="queryParams.userType" placeholder="请选择vip" clearable>
+      <el-form-item label="是否为vip(0否1是)" prop="userType">
+        <el-select v-model="queryParams.userType" placeholder="请选择是否为vip(0否1是)" clearable>
           <el-option
             v-for="dict in dict.type.is_vip"
             :key="dict.value"
@@ -104,16 +112,17 @@
       <el-table-column label="密码" align="center" prop="password" />
       <el-table-column label="邮箱" align="center" prop="email" />
       <el-table-column label="手机" align="center" prop="phone" />
-      <el-table-column label="性别" align="center" prop="gender">
+      <el-table-column label="性别(0男1女)" align="center" prop="gender">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sex" :value="scope.row.gender"/>
         </template>
       </el-table-column>
-      <el-table-column label="vip" align="center" prop="userType">
+      <el-table-column label="是否为vip(0否1是)" align="center" prop="userType">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.is_vip" :value="scope.row.userType"/>
         </template>
       </el-table-column>
+      <el-table-column label="用户图片地址" align="center" prop="userurl" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -157,8 +166,8 @@
         <el-form-item label="手机" prop="phone">
           <el-input v-model="form.phone" placeholder="请输入手机" />
         </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-select v-model="form.gender" placeholder="请选择性别">
+        <el-form-item label="性别(0男1女)" prop="gender">
+          <el-select v-model="form.gender" placeholder="请选择性别(0男1女)">
             <el-option
               v-for="dict in dict.type.sex"
               :key="dict.value"
@@ -167,8 +176,8 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="vip" prop="userType">
-          <el-select v-model="form.userType" placeholder="请选择vip">
+        <el-form-item label="是否为vip(0否1是)" prop="userType">
+          <el-select v-model="form.userType" placeholder="请选择是否为vip(0否1是)">
             <el-option
               v-for="dict in dict.type.is_vip"
               :key="dict.value"
@@ -176,6 +185,9 @@
               :value="parseInt(dict.value)"
             ></el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="用户图片地址" prop="userurl">
+          <el-input v-model="form.userurl" placeholder="请输入用户图片地址" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -217,10 +229,11 @@ export default {
         pageNum: 1,
         pageSize: 10,
         username: null,
+        password: null,
         email: null,
         phone: null,
         gender: null,
-        userType: null
+        userType: null,
       },
       // 表单参数
       form: {},
@@ -233,8 +246,8 @@ export default {
           { required: true, message: "密码不能为空", trigger: "blur" }
         ],
         userType: [
-          { required: true, message: "vip不能为空", trigger: "change" }
-        ]
+          { required: true, message: "是否为vip(0否1是)不能为空", trigger: "change" }
+        ],
       }
     }
   },
@@ -265,7 +278,8 @@ export default {
         email: null,
         phone: null,
         gender: null,
-        userType: null
+        userType: null,
+        userurl: null
       }
       this.resetForm("form")
     },

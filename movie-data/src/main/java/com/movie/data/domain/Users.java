@@ -9,7 +9,7 @@ import com.movie.common.core.domain.BaseEntity;
  * 用户表对象 users
  * 
  * @author ruoyi
- * @date 2025-05-24
+ * @date 2025-06-17
  */
 public class Users extends BaseEntity
 {
@@ -34,13 +34,17 @@ public class Users extends BaseEntity
     @Excel(name = "手机")
     private String phone;
 
-    /** 性别 */
-    @Excel(name = "性别")
+    /** 性别(0男1女) */
+    @Excel(name = "性别(0男1女)")
     private Long gender;
 
-    /** vip */
-    @Excel(name = "vip")
+    /** 是否为vip(0否1是) */
+    @Excel(name = "是否为vip(0否1是)")
     private Long userType;
+
+    /** 用户图片地址 */
+    @Excel(name = "用户图片地址")
+    private String userurl;
 
     public void setId(Long id) 
     {
@@ -112,6 +116,16 @@ public class Users extends BaseEntity
         return userType;
     }
 
+    public void setUserurl(String userurl) 
+    {
+        this.userurl = userurl;
+    }
+
+    public String getUserurl() 
+    {
+        return userurl;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -122,6 +136,7 @@ public class Users extends BaseEntity
             .append("phone", getPhone())
             .append("gender", getGender())
             .append("userType", getUserType())
+            .append("userurl", getUserurl())
             .toString();
     }
 }

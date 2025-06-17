@@ -7,7 +7,7 @@ import com.movie.data.domain.Users;
  * 用户表Mapper接口
  * 
  * @author ruoyi
- * @date 2025-05-24
+ * @date 2025-06-17
  */
 public interface UsersMapper 
 {
