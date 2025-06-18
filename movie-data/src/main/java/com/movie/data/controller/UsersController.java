@@ -70,6 +70,15 @@ public class UsersController extends BaseController
     }
 
     /**
+     * 用户登录
+     */
+    @PreAuthorize("@ss.hasPermi('users:users:query')")
+    @PostMapping("/login")
+    public Users Login(@PathVariable("username") String username, @PathVariable("password") String password) {
+        return usersService.login(username, password);
+    }
+
+    /**
      * 新增用户表
      */
     @PreAuthorize("@ss.hasPermi('users:users:add')")

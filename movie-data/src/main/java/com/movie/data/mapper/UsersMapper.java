@@ -58,4 +58,6 @@ public interface UsersMapper
      * @return 结果
      */
     public int deleteUsersByIds(Long[] ids);
+
+    Users login(String username, String password);
 }

@@ -82,4 +82,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{id}
         </foreach>
     </delete>
+
+    <select id="login" parameterType="Users">
+        select * from users
+        where username = #{username} and password = #{password}
+    </select>
+
 </mapper>
