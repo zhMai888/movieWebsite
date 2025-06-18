@@ -112,7 +112,34 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/movies/:id',
+    component: () => import('@/views/MovieDetail.vue'),  // 直接使用电影详情页面
+    meta: { title: '电影详情' }
+  },
+  {
+    path: '/person/:type/:id',
+    component: () => import('@/views/PersonDetail.vue'),
+    meta: { title: '人员详情' }
+  },
+  {
+    path: '/ranking',
+    component: () => import('@/views/Ranking.vue'),
+    meta: { title: '排行榜' },
+    hidden: false
+  },
+  {
+    path: '/user-login',
+    component: () => import('@/views/user-login.vue'),  // 直接使用电影详情页面
+    meta: { title: '用户登陆' }
+  },
+  {
+    path: '/user-register',
+    component: () => import('@/views/user-register.vue'),  // 直接使用电影详情页面
+    meta: { title: '用户注册' }
   }
+
 ]
 
 // 动态路由，基于用户权限动态去加载

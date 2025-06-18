@@ -19,7 +19,7 @@
         >电影分类</router-link>
 
         <router-link
-          to="/rankings"
+          to="/ranking"
           class="nav-link"
           active-class="active-link"
           exact
