@@ -95,4 +95,14 @@ public class UsersServiceImpl implements IUsersService
     public Users login(String username, String password) {
         return usersMapper.login(username, password);
     }
+
+    @Override
+    public void updateUserVIP(Long userId) {
+        usersMapper.updateUserVIP(userId);
+    }
+
+    @Override
+    public Long getUserVIP(Long userId) {
+        return usersMapper.getUserVIP(userId);
+    }
 }

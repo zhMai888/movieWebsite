@@ -60,4 +60,8 @@ public interface UsersMapper
     public int deleteUsersByIds(Long[] ids);
 
     Users login(String username, String password);
+
+    void updateUserVIP(Long userId);
+
+    Long getUserVIP(Long userId);
 }

@@ -49,6 +49,7 @@ import {getUsers} from '@/api/users/users'
 import {getCollections} from "@/api/collections/collections"
 import {getGenres} from "@/api/genres/genres";
 import defaultAvatar from '@/assets/images/none.png'
+import { createAlipayOrder } from '@/api/order'
 
 export default {
   name: 'UserProfile',
@@ -126,8 +127,21 @@ export default {
       }
     },
 
-    goToRecharge() {
-      this.$router.push('/recharge')
+    async goToRecharge() {
+      try {
+        const userId = this.userInfo.id || this.$store.state.user.id || localStorage.getItem('userId')
+        const timestamp = new Date().getTime()
+        const outTradeNo = `${userId}_${timestamp}`
+
+        await createAlipayOrder(outTradeNo)
+
+        // 直接跳转到支付链接（与后端接口一致）
+        const paymentUrl = `http://localhost:8080/alipay/pay?outTradeNo=${outTradeNo}&totalAmount=8.88&subject=购买VIP`
+        window.location.href = paymentUrl
+      } catch (error) {
+        console.error('支付请求失败:', error)
+        this.$message.error('支付请求失败，请稍后重试')
+      }
     }
   }
 }

@@ -88,4 +88,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where username = #{username} and password = #{password}
     </select>
 
+
+    <update id="updateUserVIP" parameterType="java.lang.Long">
+        update users
+        set user_type = 1
+        where id = #{id}
+    </update>
+
+    <select id="getUserVIP" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select user_type from users
+        where id = #{id}
+    </select>
+
 </mapper>

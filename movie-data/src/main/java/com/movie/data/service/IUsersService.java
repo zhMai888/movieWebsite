@@ -60,4 +60,8 @@ public interface IUsersService
     public int deleteUsersById(Long id);
 
     Users login(String username, String password);
+
+    void updateUserVIP(Long userId);
+
+    Long getUserVIP(Long userId);
 }
