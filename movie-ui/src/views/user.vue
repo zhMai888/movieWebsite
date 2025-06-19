@@ -46,7 +46,8 @@
 import Navigation from '@/components/Navigation.vue'
 import MovieCard from '@/components/MovieCard.vue'
 import {getUsers} from '@/api/users/users'
-import {getCollections} from "@/api/collections/collections";
+import {getCollections} from "@/api/collections/collections"
+import {getGenres} from "@/api/genres/genres";
 import defaultAvatar from '@/assets/images/none.png'
 
 export default {
@@ -98,13 +99,33 @@ export default {
         }
 
         const response = await getCollections(userId)
-        this.displayMovies = response.rows || response.data || []
+        const rawMovies = response.rows || response.data || []
+
+        // 获取类型并补充到每部电影上
+        const moviesWithTypes = await Promise.all(
+          rawMovies.map(async (movie) => {
+            let type = 'Unknown'
+            try {
+              const res = await getGenres(movie.genreId)
+              type = res.data?.type || 'Unknown'
+            } catch (err) {
+              console.error(`获取类型失败: ${movie.genreId}`, err)
+            }
+            return {
+              ...movie,
+              type
+            }
+          })
+        )
+
+        this.displayMovies = moviesWithTypes
       } catch (error) {
         this.$message.error('获取收藏列表失败')
       } finally {
         this.initialLoading = false
       }
     },
+
     goToRecharge() {
       this.$router.push('/recharge')
     }
