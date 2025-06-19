@@ -1,42 +1,44 @@
 <template>
-  <div class="rankings-container">
+  <div>
     <Navigation />
 
-    <!-- 选项卡按钮 -->
-    <div class="tab-header">
-      <button
-        v-for="(tab, index) in tabs"
-        :key="index"
-        :class="['tab-button', { active: activeTab === tab.key }]"
-        @click="activeTab = tab.key"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
+    <div class="rankings-container">
+      <!-- 选项卡按钮 -->
+      <div class="tab-header">
+        <button
+          v-for="(tab, index) in tabs"
+          :key="index"
+          :class="['tab-button', { active: activeTab === tab.key }]"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
 
-    <!-- 排行榜内容 -->
-    <div class="rankings">
-      <RankSection
-        v-if="activeTab === 'week'"
-        title="周播放排行"
-        :movies="topWeekList"
-        playKey="weekcount"
-        @select="goToDetail"
-      />
-      <RankSection
-        v-if="activeTab === 'month'"
-        title="月播放排行"
-        :movies="topMonthList"
-        playKey="monthcount"
-        @select="goToDetail"
-      />
-      <RankSection
-        v-if="activeTab === 'total'"
-        title="总播放排行"
-        :movies="topTotalList"
-        playKey="count"
-        @select="goToDetail"
-      />
+      <!-- 排行榜内容 -->
+      <div class="rankings">
+        <RankSection
+          v-if="activeTab === 'week'"
+          title="周播放排行"
+          :movies="topWeekList"
+          playKey="weekcount"
+          @select="goToDetail"
+        />
+        <RankSection
+          v-if="activeTab === 'month'"
+          title="月播放排行"
+          :movies="topMonthList"
+          playKey="monthcount"
+          @select="goToDetail"
+        />
+        <RankSection
+          v-if="activeTab === 'total'"
+          title="总播放排行"
+          :movies="topTotalList"
+          playKey="count"
+          @select="goToDetail"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -102,8 +104,8 @@ export default {
   margin: 0 auto;
   padding: 20px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #e5e7eb;
-  background-color: #1f2937;
+  color: #1f2937; /* 深色字体 */
+  background-color: #ffffff; /* 白色背景 */
   min-height: 100vh;
 }
 
@@ -119,20 +121,20 @@ export default {
   padding: 10px 20px;
   border-radius: 9999px;
   border: none;
-  background-color: #374151;
-  color: #9ca3af;
+  background-color: #e5e7eb; /* 浅灰背景 */
+  color: #374151; /* 深灰字体 */
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .tab-button:hover {
-  background-color: #4b5563;
-  color: white;
+  background-color: #d1d5db; /* 更浅的灰色 */
+  color: #111827;
 }
 
 .tab-button.active {
-  background-color: #3b82f6;
+  background-color: #3b82f6; /* 蓝色激活背景 */
   color: white;
 }
 
@@ -145,8 +147,9 @@ export default {
 
 section {
   flex: 1;
-  background-color: #1f2937;
+  background-color: #ffffff; /* 白色背景 */
   padding: 0 16px 20px 16px;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid #e5e7eb; /* 浅色边框 */
 }
+
 </style>

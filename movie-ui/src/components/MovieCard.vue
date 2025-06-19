@@ -10,7 +10,7 @@
           <!-- 电影海报区域（含VIP标识） -->
           <div class="poster-container">
             <router-link
-              :to="{name: 'MovieDetail', params: {id: movie.id}}"
+              :to="`/movies/${movie.id}`"
               class="poster-link"
             >
               <img
@@ -33,7 +33,7 @@
           <!-- 电影信息区域 -->
           <div class="movie-info">
             <h3 class="movie-title">
-              <router-link :to="{name: 'MovieDetail', params: {id: movie.id}}">
+              <router-link :to="`/movies/${movie.id}`">
                 {{ movie.name }}
               </router-link>
             </h3>
@@ -72,7 +72,6 @@ export default {
       type: Array,
       required: true,
       default: () => []
-
     }
   },
   data() {
@@ -83,11 +82,9 @@ export default {
   methods: {
     // 安全获取发行年份
     safeReleaseYear(date) {
-      // 如果是有效年份数字（1900-2100之间）
       if (typeof date === 'number' && date > 1900 && date < 2100) {
         return date.toString();
       }
-      // 如果是日期字符串
       if (typeof date === 'string' && date.length >= 4) {
         return date.substring(0, 4);
       }
@@ -97,28 +94,24 @@ export default {
     // 获取完整海报路径
     getFullPosterPath(filename) {
       if (!filename) return null;
-
       try {
-        // 开发环境使用require方式加载（webpack会处理）
         return require(`@/assets/thumbnails_done/movie_posters/${filename}`);
       } catch (e) {
-        // 生产环境使用直接路径
         return `/assets/thumbnails_done/movie_posters/${filename}`;
       }
     },
 
-    // 修正错误处理方法
+    // 处理图片加载错误
     handleImageError(event) {
       event.target.src = this.defaultPoster;
-      event.target.onerror = null; // 防止默认图片也出错时无限循环
+      event.target.onerror = null;
     },
 
     // 计算评分
     calculateRating(movie) {
       if (!movie.scoreCount || movie.scoreCount === 0) {
-        return 0; // 如果没有评分人数，返回0
+        return 0;
       }
-      // 计算平均分
       return movie.scoreTotal / movie.scoreCount;
     }
   }
@@ -194,7 +187,7 @@ export default {
   right: -18px;
   width: 75px;
   padding: 3px 0;
-  background-color: #FFA500; /* 纯金色背景 */
+  background-color: #FFA500;
   color: white;
   text-align: center;
   font-size: 12px;
