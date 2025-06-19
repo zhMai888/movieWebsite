@@ -8,7 +8,7 @@
       >
         <div class="person-card">
           <div class="avatar-container">
-            <router-link :to="{name: 'PersonDetail', params: {id: person.id}}" class="avatar-link">
+            <router-link :to="`/person/${person.type}/${person.id}`" class="avatar-link">
               <img
                 class="person-avatar"
                 :src="getFullAvatarPath(person.photourl)"
@@ -24,7 +24,7 @@
 
           <div class="person-info">
             <h3 class="person-name">
-              <router-link :to="{name: 'PersonDetail', params: {id: person.id}}">
+              <router-link :to="`/person/${person.type}/${person.id}`">
                 {{ person.name }}
               </router-link>
             </h3>

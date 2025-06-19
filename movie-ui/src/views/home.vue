@@ -84,7 +84,7 @@ import Navigation from '@/components/Navigation.vue'
 import MovieCard from '@/components/MovieCard.vue'
 import MovieCarousel from '@/components/MovieCarousel.vue'
 import { listMovies } from '@/api/movies/movies'
-import { getGenres } from '@/api/genres/genres'
+import { listGenres } from '@/api/genres/genres'
 import { throttle } from 'lodash'
 import genres from "@/views/genres/genres/index.vue";
 
@@ -107,7 +107,7 @@ export default {
       initialLoading: true,  // 初始加载状态
       loadingMore: false,    // 加载更多状态
       error: null,
-      genreCache: {},
+      genreCache: {},        // 类型缓存，id => type 映射
       currentPage: 1,
       pageSize: 10,
       hasMore: true,
@@ -142,19 +142,18 @@ export default {
     }
   },
   methods: {
-    async fetchMovieType(genreId) {
-      if (this.genreCache[genreId]) {
-        return this.genreCache[genreId]
-      }
-
+    // 预加载全部电影类型，构建 genreCache
+    async getAllGenres() {
       try {
-        const res = await getGenres(genreId)
-        const type = res.data?.type || 'Unknown'
-        this.$set(this.genreCache, genreId, type)
-        return type
-      } catch (error) {
-        console.error(`获取类型 ${genreId} 失败:`, error)
-        return 'Unknown'
+        const res = await listGenres({ pageSize: 100 }) // 这里改用能返回所有类型的接口
+        const genreList = res.rows || []
+
+        this.genreCache = {}
+        genreList.forEach(genre => {
+          this.genreCache[genre.id] = genre.type
+        })
+      } catch (e) {
+        console.error('获取全部类型失败:', e)
       }
     },
 
@@ -178,15 +177,11 @@ export default {
 
         const rawMovies = moviesRes["rows"] || []
 
-        const moviesWithTypes = await Promise.all(
-          rawMovies.map(async movie => {
-            const type = await this.fetchMovieType(movie.genreId)
-            return {
-              ...movie,
-              type: type
-            }
-          })
-        )
+        // 直接用 genreCache 映射类型，避免重复请求
+        const moviesWithTypes = rawMovies.map(movie => ({
+          ...movie,
+          type: this.genreCache[movie.genreId] || 'Unknown'
+        }))
 
         this.allMovies = [...this.allMovies, ...moviesWithTypes]
         this.displayMovies = this.allMovies
@@ -230,6 +225,7 @@ export default {
     }
   },
   async created() {
+    await this.getAllGenres()
     await this.loadMovies()
     this.initScrollListener()
   },
@@ -240,6 +236,7 @@ export default {
 </script>
 
 <style scoped>
+/* 样式保持不变 */
 .home-container {
   display: flex;
   flex-direction: column;

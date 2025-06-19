@@ -15,7 +15,7 @@
           v-for="director in displayDirectors"
           :key="director.id"
         >
-          <PeopleGrid :people="[director]" :detail-route="'DirectorDetail'"/>
+          <PeopleGrid :people="[{ ...director, type: 'director' }]" />
         </div>
       </div>
 

@@ -15,7 +15,7 @@
           v-for="actor in displayActors"
           :key="actor.id"
         >
-          <PeopleGrid :people="[actor]"/>
+          <PeopleGrid :people="[{ ...actor, type: 'actor' }]" />
         </div>
       </div>
 

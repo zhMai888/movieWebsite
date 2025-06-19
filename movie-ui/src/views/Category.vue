@@ -162,7 +162,13 @@ export default {
     async fetchGenres() {
       try {
         const res = await listGenres({ pageSize: 100 })
-        this.genres = res['rows'] || []
+        this.genres = res.rows || []
+
+        // 构建本地缓存
+        this.genreCache = {}
+        this.genres.forEach(genre => {
+          this.genreCache[genre.id] = genre.type
+        })
       } catch (error) {
         console.error('获取电影类型失败:', error)
       }
@@ -257,15 +263,10 @@ export default {
         }
 
         const res = await listMovies(params)
-        const moviesWithTypes = await Promise.all(
-          (res['rows'] || []).map(async movie => {
-            const type = await this.fetchMovieType(movie.genreId)
-            return {
-              ...movie,
-              type: type
-            }
-          })
-        )
+        const moviesWithTypes = (res["rows"] || []).map(movie => ({
+          ...movie,
+          type: this.genreCache[movie.genreId] || 'Unknown'
+        }))
 
         this.filteredMovies = moviesWithTypes
       } catch (error) {

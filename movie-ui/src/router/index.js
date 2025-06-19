@@ -115,11 +115,13 @@ export const constantRoutes = [
   },
   {
     path: '/movies/:id',
+    name: 'MovieDetail',
     component: () => import('@/views/MovieDetail.vue'),  // 直接使用电影详情页面
     meta: { title: '电影详情' }
   },
   {
     path: '/person/:type/:id',
+    name: 'PersonDetail',
     component: () => import('@/views/PersonDetail.vue'),
     meta: { title: '人员详情' }
   },
