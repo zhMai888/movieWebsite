@@ -90,4 +90,9 @@ public class UsersServiceImpl implements IUsersService
     {
         return usersMapper.deleteUsersById(id);
     }
+
+    @Override
+    public Users login(String username, String password) {
+        return usersMapper.login(username, password);
+    }
 }

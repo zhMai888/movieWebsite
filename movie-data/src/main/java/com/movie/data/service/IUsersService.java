@@ -58,4 +58,6 @@ public interface IUsersService
      * @return 结果
      */
     public int deleteUsersById(Long id);
+
+    Users login(String username, String password);
 }
