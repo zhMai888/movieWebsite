@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.movie.data.mapper.MadMapper">
+    <select id="mtoa" resultType="Long">
+        select actor_id from movie_actor where movie_id = #{movieId}
+    </select>
+
+    <select id="mtod" resultType="Long">
+        select director_id from movie_director where movie_id = #{movieId}
+    </select>
+
+    <select id="atom" resultType="Long">
+        select movie_id from movie_actor where actor_id = #{actorId}
+    </select>
+
+    <select id="dtom" resultType="Long">
+        select movie_id from movie_director where director_id = #{directorId}
+    </select>
+</mapper>
