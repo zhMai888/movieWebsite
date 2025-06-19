@@ -25,17 +25,17 @@
         select movies.*
         from collections
                  inner join movies on collections.movie_id = movies.id
-        where collections.user_id = #{userId};
+        where collections.user_id = #{userId}
     </select>
-    
+
     <insert id="addById">
         insert into collections (user_id, movie_id)
-        values (#{userId}, #{movieId});
+        values (#{userId}, #{movieId})
     </insert>
 
     <delete id="deleteById">
         delete from collections
-        where user_id = #{userId} and movie_id = #{movieId};
+        where user_id = #{userId} and movie_id = #{movieId}
     </delete>
 
 </mapper>

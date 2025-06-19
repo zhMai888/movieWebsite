@@ -4,25 +4,12 @@
     <Navigation/>
 
     <div class="main-content">
-      <!-- 左侧收藏电影区域 -->
-      <div class="movie-collections">
-        <h2>我的收藏</h2>
-        <div v-if="initialLoading" class="loading-indicator">
-          加载中...
-        </div>
-        <MovieCard
-          v-else
-          :movies="displayMovies"
-          :genres="genres"
-        />
-      </div>
-
-      <!-- 右侧用户信息侧边栏 -->
+      <!-- 左侧用户信息侧边栏 -->
       <div class="user-sidebar">
         <div class="user-info-card">
           <!-- 用户头像 -->
           <div class="user-avatar">
-            <img :src="userInfo.avatar || defaultAvatar" alt="用户头像">
+            <img :src="getFullAvatarPath(userInfo.userurl)" alt="用户头像">
           </div>
 
           <!-- 用户基本信息 -->
@@ -37,6 +24,19 @@
             充值
           </button>
         </div>
+      </div>
+
+      <!-- 右侧收藏电影区域 -->
+      <div class="movie-collections">
+        <h2>我的收藏</h2>
+        <div v-if="initialLoading" class="loading-indicator">
+          加载中...
+        </div>
+        <MovieCard
+          v-else
+          :movies="displayMovies"
+          :genres="genres"
+        />
       </div>
     </div>
   </div>
@@ -60,7 +60,7 @@ export default {
       initialLoading: true,
       userInfo: {},
       displayMovies: [],
-      genres: [], // 假设这是从其他地方获取的类型数据
+      genres: [],
       defaultAvatar
     }
   },
@@ -69,24 +69,37 @@ export default {
     this.fetchCollections()
   },
   methods: {
+    getFullAvatarPath(filename) {
+      if (!filename) return defaultAvatar;
+      return require(`@/assets/user_avatars/${filename}`);
+    },
     async fetchUserData() {
       try {
-        // 假设用户ID存储在Vuex或本地存储中
         const userId = this.$store.state.user.id || localStorage.getItem('userId')
+
+        if (!userId) {
+          this.$message.error('用户未登录');
+          return;
+        }
+
         const response = await getUsers(userId)
         this.userInfo = response.data
       } catch (error) {
-        console.error('获取用户信息失败:', error)
         this.$message.error('获取用户信息失败')
       }
     },
     async fetchCollections() {
       try {
         const userId = this.$store.state.user.id || localStorage.getItem('userId')
+
+        if (!userId) {
+          this.$message.error('用户未登录');
+          return;
+        }
+
         const response = await getCollections(userId)
-        this.displayMovies = response.data
+        this.displayMovies = response.rows || response.data || []
       } catch (error) {
-        console.error('获取收藏列表失败:', error)
         this.$message.error('获取收藏列表失败')
       } finally {
         this.initialLoading = false
@@ -111,6 +124,7 @@ export default {
   flex: 1;
   padding: 20px;
   gap: 20px;
+  position: relative; /* 添加相对定位 */
 }
 
 .movie-collections {
@@ -118,13 +132,17 @@ export default {
   padding: 20px;
   background-color: #f5f5f5;
   border-radius: 8px;
+  margin-left: 320px; /* 为固定侧边栏留出空间 */
 }
 
 .user-sidebar {
   width: 300px;
-  position: sticky;
-  top: 20px;
-  height: fit-content;
+  position: fixed; /* 改为fixed定位 */
+  top: 80px; /* 根据导航栏高度调整 */
+  bottom: 0; /* 延伸到页面底部 */
+  left: 20px; /* 与main-content的padding一致 */
+  height: calc(100vh - 100px); /* 计算高度减去导航栏和间距 */
+  overflow-y: auto; /* 如果内容过多可以滚动 */
 }
 
 .user-info-card {
@@ -135,6 +153,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100%;
 }
 
 .user-avatar img {
@@ -192,10 +211,15 @@ export default {
     flex-direction: column;
   }
 
+  .movie-collections {
+    margin-left: 0; /* 移动端取消左边距 */
+    margin-top: 20px; /* 添加顶部间距 */
+  }
+
   .user-sidebar {
+    position: static; /* 移动端恢复静态定位 */
     width: 100%;
-    position: static;
-    order: -1;
+    height: auto;
     margin-bottom: 20px;
   }
 }
