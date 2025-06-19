@@ -42,3 +42,22 @@ export function delUsers(id) {
     method: 'delete'
   })
 }
+
+// 用户登录
+export function userlogin(data) {
+  return request({
+    url: '/users/users/login',
+    method: 'post',
+    data: data
+  })
+}
+
+// 验证码校验
+export function checkCaptcha(data) {
+  return request({
+    url: '/users/users/captcha',
+    method: 'post',
+    data: data
+  })
+}
+

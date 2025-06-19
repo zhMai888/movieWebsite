@@ -1,370 +1,415 @@
 <template>
-  <div class="douban-movie-detail">
-    <!-- 顶部导航栏 -->
+  <div class="page-wrapper">
     <Navigation />
-
-    <div class="container" v-if="!loading">
-      <!-- 海报 -->
-      <div class="poster">
-        <img :src="movie.coverurl" alt="电影海报" />
+    <div class="movie-detail-container">
+      <!-- 左侧大海报 -->
+      <div class="poster-wrapper">
+        <img
+          v-if="movie.coverurl"
+          :src="getFullPosterPath(movie.coverurl)"
+          alt="电影封面"
+          class="poster"
+        />
       </div>
 
-      <!-- 电影信息卡片 -->
-      <div class="info">
-        <h1 class="title">
-          {{ movie.name }}
-          <span class="year">({{ movie.releaseDate }})</span>
-        </h1>
+      <!-- 右侧信息区 -->
+      <div class="info-wrapper">
+        <h1 class="movie-title">{{ movie.name }}</h1>
+        <div class="movie-score">
+          <span class="score-number">{{ (movie.scoreTotal / (movie.scoreCount || 1)).toFixed(1) }}</span>
+          <span class="score-count">（{{ movie.scoreCount }}人评分）</span>
+        </div>
+        <p class="movie-description">{{ movie.description }}</p>
 
-        <!-- 收藏和播放按钮 -->
+        <!-- 播放和收藏按钮 -->
         <div class="action-buttons">
-          <button
-            @click="onFavoriteClick"
-            :class="['btn', 'favorite-btn', { active: isFavorited }]"
-          >
-            {{ isFavorited ? "已收藏" : "收藏" }}
+          <button @click="handlePlay" class="btn-play">播放</button>
+          <button @click="toggleFavorite" :class="{'btn-favorite': true, 'favorited': isFavorite}">
+            {{ isFavorite ? '已收藏' : '收藏' }}
           </button>
-          <button @click="onPlayClick" class="btn play-btn">播放</button>
         </div>
 
-        <!-- 评分 -->
-        <div class="rating" v-if="movie.scoreCount > 0">
-          <div class="score">
-            {{ (movie.scoreTotal / movie.scoreCount).toFixed(1) }}
-          </div>
-          <div class="stars">
-            <span
-              v-for="n in 5"
-              :key="n"
-              class="star"
-              :class="{ full: n <= Math.round(movie.scoreTotal / movie.scoreCount / 2) }"
-            >★</span
-            >
-          </div>
-          <div class="count">{{ movie.scoreCount }}人评分</div>
-        </div>
-
-        <!-- 简要信息 -->
-        <div class="details">
-          <p><strong>类型：</strong>{{ genreName }}</p>
+        <div class="movie-meta">
+          <p><strong>上映日期：</strong>{{ movie.releaseDate }}</p>
           <p><strong>地区：</strong>{{ areaName }}</p>
-          <p><strong>简介：</strong></p>
-          <p class="description">{{ movie.description }}</p>
+          <p><strong>类型：</strong>{{ genreName }}</p>
+
+          <div class="watch-counts">
+            <div class="watch-count-card">
+              <div class="count-number">{{ movie.count }}</div>
+              <div class="count-label">总观看</div>
+            </div>
+            <div class="watch-count-card">
+              <div class="count-number">{{ movie.weekcount }}</div>
+              <div class="count-label">本周观看</div>
+            </div>
+            <div class="watch-count-card">
+              <div class="count-number">{{ movie.monthcount }}</div>
+              <div class="count-label">本月观看</div>
+            </div>
+          </div>
+
+          <p><strong>是否需要 VIP 权限：</strong>{{ vipText }}</p>
+          <p><strong>播放地址：</strong><a :href="movie.movieurl" target="_blank" class="movie-url">{{ movie.movieurl }}</a></p>
         </div>
 
-        <!-- 导演 -->
-        <div class="people-scroll-section">
-          <h3>导演</h3>
-          <div class="people-scroll" v-if="directors.length">
+        <div class="people-section">
+          <h2>导演</h2>
+          <div class="people-list">
             <router-link
-              class="person"
-              v-for="director in directors"
-              :key="'director-' + director.id"
-              :to="`/person/director/${director.id}`"
-              :title="director.name"
+              v-for="d in directors"
+              :key="d.id"
+              :to="`/person/director/${d.id}`"
+              class="person-card"
+              :title="d.name"
             >
-              <img :src="director.avatar || defaultAvatar" alt="导演头像" />
-              <div class="name">{{ director.name }}</div>
+              <img :src="getFullPhotoPath(d.photourl)" alt="导演头像" class="avatar" />
+              <div class="person-name">{{ d.name }}</div>
             </router-link>
           </div>
-          <div v-else>暂无导演信息</div>
         </div>
 
-        <!-- 演员 -->
-        <div class="people-scroll-section">
-          <h3>演员</h3>
-          <div class="people-scroll" v-if="actors.length">
+        <div class="people-section">
+          <h2>演员</h2>
+          <div class="people-list">
             <router-link
-              class="person"
-              v-for="actor in actors"
-              :key="'actor-' + actor.id"
-              :to="`/person/actor/${actor.id}`"
-              :title="actor.name"
+              v-for="a in actors"
+              :key="a.id"
+              :to="`/person/actor/${a.id}`"
+              class="person-card"
+              :title="a.name"
             >
-              <img :src="actor.avatar || defaultAvatar" alt="演员头像" />
-              <div class="name">{{ actor.name }}</div>
+              <img :src="getFullPhotoPath(a.photourl)" alt="演员头像" class="avatar" />
+              <div class="person-name">{{ a.name }}</div>
             </router-link>
           </div>
-          <div v-else>暂无演员信息</div>
         </div>
       </div>
     </div>
-
-    <!-- 加载中提示 -->
-    <div v-else class="loading">加载中...</div>
   </div>
 </template>
 
 <script>
 import Navigation from "@/components/Navigation.vue";
-import {
-  getMovies,
-  listDirectors,
-  listActors,
-  searchGenres,
-  searchAreas,
-} from "@/api/movies/movies";
+import { getMovies, getActorIdsByMovie, getDirectorIdsByMovie } from "@/api/movies/movies";
+import { getActors } from "@/api/actors/actors";
+import { getDirectors } from "@/api/directors/directors";
+import { listGenres } from "@/api/genres/genres";
+import { listAreas } from "@/api/areas/areas";
 
 export default {
-  name: "DoubanMovieDetail",
+  name: "MovieDebug",
   components: { Navigation },
   data() {
     return {
       movie: {},
-      genreName: "",
-      areaName: "",
       directors: [],
       actors: [],
-      defaultAvatar: "https://via.placeholder.com/72?text=无图",
-      loading: true,
-      isFavorited: false,
+      genres: [],
+      areas: [],
+      isFavorite: false, // 收藏状态
     };
   },
-  async created() {
-    const id = this.$route.params.id;
-    try {
-      const res = await getMovies(id);
-      if (res.code === 200) {
-        this.movie = res.data;
-
-        const [directorsRes, actorsRes, genresRes, areasRes] = await Promise.all([
-          listDirectors({ movieId: id }),
-          listActors({ movieId: id }),
-          searchGenres({ id: this.movie.genreId }),
-          searchAreas({ id: this.movie.areaId }),
-        ]);
-
-        this.genreName =
-          genresRes.code === 200 && genresRes.data.length > 0
-            ? genresRes.data[0].name
-            : "";
-        this.areaName =
-          areasRes.code === 200 && areasRes.data.length > 0
-            ? areasRes.data[0].name
-            : "";
-
-        this.directors =
-          directorsRes.code === 200
-            ? directorsRes.data.map((d) => ({
-              id: d.id,
-              name: d.name,
-              avatar: d.avatarUrl || d.photo || "",
-            }))
-            : [];
-
-        this.actors =
-          actorsRes.code === 200
-            ? actorsRes.data.map((a) => ({
-              id: a.id,
-              name: a.name,
-              avatar: a.avatarUrl || a.photo || "",
-            }))
-            : [];
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      this.loading = false;
+  computed: {
+    areaName() {
+      const area = this.areas.find(a => a.id === this.movie.areaId);
+      return area ? area.areaname : "未知地区";
+    },
+    genreName() {
+      const genre = this.genres.find(g => g.id === this.movie.genreId);
+      return genre ? genre.type : "未知类型";
+    },
+    vipText() {
+      if (this.movie.see === 1 || this.movie.see === true) return "是";
+      if (this.movie.see === 0 || this.movie.see === false) return "否";
+      return "未知";
     }
   },
   methods: {
-    onFavoriteClick() {
-      this.isFavorited = !this.isFavorited;
-      alert(this.isFavorited ? "已收藏" : "已取消收藏");
+    getFullPosterPath(filename) {
+      if (!filename) return null;
+      try {
+        return require(`@/assets/thumbnails_done/movie_posters/${filename}`);
+      } catch (e) {
+        return `/assets/thumbnails_done/movie_posters/${filename}`;
+      }
     },
-    onPlayClick() {
-      alert(`准备播放电影：《${this.movie.name}》`);
+    getFullPhotoPath(filename) {
+      if (!filename) return null;
+      try {
+        return require(`@/assets/thumbnails_done/preson_posters/${filename}`);
+      } catch (e) {
+        return `/assets/thumbnails_done/preson_posters/${filename}`;
+      }
     },
+    handlePlay() {
+      if (this.movie.movieurl) {
+        window.open(this.movie.movieurl, "_blank");
+      } else {
+        alert("播放地址为空");
+      }
+    },
+    toggleFavorite() {
+      this.isFavorite = !this.isFavorite;
+      if (this.isFavorite) {
+        alert("收藏成功");
+        // TODO: 调用收藏接口
+      } else {
+        alert("取消收藏");
+        // TODO: 调用取消收藏接口
+      }
+    }
   },
+  async created() {
+    const movieId = this.$route.params.id;
+
+    try {
+      // 电影详情
+      const res = await getMovies(movieId);
+      if (res.code === 200 && res.data) {
+        this.movie = res.data;
+      }
+
+      // 导演
+      const directorIdList = await getDirectorIdsByMovie(movieId);
+      if (Array.isArray(directorIdList)) {
+        const details = await Promise.all(
+          directorIdList.map(id =>
+            getDirectors(id).then(res => res.data || res)
+          )
+        );
+        this.directors = details;
+      }
+
+      // 演员
+      const actorIdList = await getActorIdsByMovie(movieId);
+      if (Array.isArray(actorIdList)) {
+        const details = await Promise.all(
+          actorIdList.map(id =>
+            getActors(id).then(res => res.data || res)
+          )
+        );
+        this.actors = details;
+      }
+
+      // 类型和地区列表
+      const genresRes = await listGenres({pageSize: 100});
+      if (genresRes.rows) {
+        this.genres = genresRes.rows;
+      }
+      const areasRes = await listAreas({pageSize: 100});
+      if (areasRes.rows) {
+        this.areas = areasRes.rows;
+      }
+    } catch (err) {
+      console.error("获取数据失败：" + err.message);
+    }
+  }
 };
 </script>
 
 <style scoped>
-.douban-movie-detail {
-  padding-top: 64px;
-  background-color: #0f0f0f;
-  color: #fff;
+.page-wrapper {
+  background-color: #f6f6f6;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  padding: 2rem;
-  gap: 2rem;
-}
-
-.poster img {
-  width: 100%;
-  border-radius: 8px;
-  object-fit: cover;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-}
-
-.info {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  background-color: #1c1c1c;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.05);
+  color: #333;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 0.2rem;
-}
-
-.year {
-  font-weight: normal;
-  font-size: 1.2rem;
-  color: #bbbbbb;
-  margin-left: 0.5rem;
-}
-
-.action-buttons {
+.movie-detail-container {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  max-width: 960px;
+  margin: 2rem auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+  padding: 20px;
 }
 
-.btn {
-  padding: 0.5rem 1.5rem;
+.poster-wrapper {
+  flex-shrink: 0;
+  width: 280px;
+  margin-right: 30px;
+}
+
+.poster {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+}
+
+.info-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.movie-score {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 15px;
+}
+
+.score-number {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #e3a21a;
+  margin-right: 8px;
+}
+
+.score-count {
   font-size: 1rem;
-  border-radius: 24px;
+  color: #666;
+}
+
+.movie-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+/* 播放和收藏按钮 */
+.action-buttons {
+  margin: 15px 0;
+  display: flex;
+  gap: 15px;
+}
+
+.btn-play,
+.btn-favorite {
+  padding: 10px 20px;
+  border-radius: 5px;
   border: none;
+  font-weight: 600;
   cursor: pointer;
-  color: #fff;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
+  user-select: none;
+  transition: background-color 0.3s;
 }
 
-.favorite-btn {
-  background-color: #f5c518;
-  color: #000;
+.btn-play {
+  background-color: #3b82f6;
+  color: white;
 }
 
-.favorite-btn:hover {
-  background-color: #e0b300;
+.btn-play:hover {
+  background-color: #2563eb;
 }
 
-.favorite-btn.active {
-  background-color: #e0b300;
+.btn-favorite {
+  background-color: #e5e7eb;
+  color: #374151;
 }
 
-.play-btn {
-  background-color: #2f80ed;
+.btn-favorite.favorited {
+  background-color: #fbbf24;
+  color: #92400e;
 }
 
-.play-btn:hover {
-  background-color: #1366d6;
+.btn-favorite:hover {
+  background-color: #d1d5db;
 }
 
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #fff;
+.btn-favorite.favorited:hover {
+  background-color: #f59e0b;
 }
 
-.score {
-  font-size: 2.5rem;
-  color: #f5c518;
-}
-
-.stars {
-  font-size: 1.5rem;
-  color: #f5c518;
-}
-
-.star {
-  opacity: 0.3;
-}
-
-.star.full {
-  opacity: 1;
-}
-
-.count {
+.movie-meta p {
+  margin: 5px 0;
   font-size: 0.9rem;
-  color: #aaa;
+  color: #555;
 }
 
-.details {
-  margin-top: 1rem;
-  font-size: 0.95rem;
-  color: #ccc;
+.movie-url {
+  color: #3498db;
+  text-decoration: none;
 }
 
-.details p {
-  margin: 0.2rem 0;
+.movie-url:hover {
+  text-decoration: underline;
 }
 
-.description {
-  margin-top: 0.5rem;
-  line-height: 1.6;
-  color: #ddd;
-}
-
-.people-scroll-section {
-  margin-top: 2rem;
-}
-
-.people-scroll-section h3 {
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
-  color: #f5c518;
-}
-
-.people-scroll {
+.watch-counts {
   display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
+  gap: 24px;
+  margin: 12px 0 20px 0;
 }
 
-.person {
-  flex: 0 0 auto;
-  width: 88px;
+.watch-count-card {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  width: 120px;
+  padding: 12px 0;
   text-align: center;
-  color: #ccc;
-  transition: transform 0.3s ease;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+  color: #333;
+  user-select: none;
 }
 
-.person:hover {
-  transform: scale(1.05);
+.count-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.2;
 }
 
-.person img {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
+.count-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.people-section {
+  margin-top: 30px;
+}
+
+.people-section h2 {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.people-list {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.person-card {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.avatar {
+  width: 80px;
+  height: 110px;
+  border-radius: 6px;
   object-fit: cover;
-  margin-bottom: 0.25rem;
-  border: 2px solid #f5c518;
-  box-shadow: 0 0 12px rgba(245, 197, 24, 0.5);
+  margin-bottom: 6px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
 }
 
-.name {
-  font-size: 0.8rem;
+.person-name {
+  font-size: 0.85rem;
+  text-align: center;
+  color: #444;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* 加载提示 */
-.loading {
-  color: #aaa;
-  text-align: center;
-  margin-top: 150px;
-  font-size: 1.2rem;
+  width: 100%;
 }
 </style>

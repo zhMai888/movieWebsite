@@ -2,6 +2,8 @@ package com.movie.data.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,9 @@ public class UsersController extends BaseController
 {
     @Autowired
     private IUsersService usersService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 查询用户表列表
@@ -74,9 +79,33 @@ public class UsersController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('users:users:query')")
     @PostMapping("/login")
-    public Users Login(@PathVariable("username") String username, @PathVariable("password") String password) {
+    public Users Login(String username, String password) {
         return usersService.login(username, password);
     }
+
+    /**
+     * 验证码校验
+     */
+
+    @PostMapping("/captcha")
+    public int JudgeCaptcha(String code, String uuid){
+        if (uuid == null || uuid.isEmpty()) {
+            return 0;
+        }
+        String key = "captcha_codes:" + uuid;
+        String cacheCode = stringRedisTemplate.opsForValue().get(key);
+        if (cacheCode == null) {
+            return 2; // 验证码过期或不存在
+        }
+        if (cacheCode.equalsIgnoreCase(code)) {
+            stringRedisTemplate.delete(key);
+            return 1; // 验证码正确
+        } else {
+            return 0; // 验证码错误
+        }
+    }
+
+
 
     /**
      * 新增用户表

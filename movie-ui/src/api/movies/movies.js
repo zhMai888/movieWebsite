@@ -79,3 +79,39 @@ export function listDirectors(query) {
   })
 }
 
+// 通过电影 ID 查演员 ID 列表
+export function getActorIdsByMovie(movie_id) {
+  return request({
+    url: '/mad/mad/mtoa',
+    method: 'get',
+    params: { movie_id }
+  })
+}
+
+// 通过电影 ID 查导演 ID 列表
+export function getDirectorIdsByMovie(movie_id) {
+  return request({
+    url: '/mad/mad/mtod',
+    method: 'get',
+    params: { movie_id }
+  })
+}
+
+// 通过演员 ID 查电影 ID 列表
+export function getMovieIdsByActor(actor_id) {
+  return request({
+    url: '/mad/mad/atom',
+    method: 'get',
+    params: { actor_id }
+  })
+}
+
+// 通过导演 ID 查电影 ID 列表
+export function getMovieIdsByDirector(director_id) {
+  return request({
+    url: '/mad/mad/dtom',
+    method: 'get',
+    params: { director_id }
+  })
+}
+

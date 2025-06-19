@@ -54,7 +54,9 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-login">登录</button>
+          <button type="submit" class="btn-login" :disabled="loading">
+            {{ loading ? '登录中...' : '登录' }}
+          </button>
         </form>
 
         <div class="register-link">
@@ -67,7 +69,8 @@
 </template>
 
 <script>
-import { getCodeImg } from "@/api/login"; // 确保你有这个接口函数
+import { getCodeImg } from "@/api/login"; // 你的验证码接口
+import { userlogin } from "@/api/users/users"; // 登录接口
 
 export default {
   name: "UserLogin",
@@ -96,38 +99,30 @@ export default {
           this.uuid = "";
         });
     },
-    async handleLogin() {
+    handleLogin() {
       if (!this.account || !this.password || !this.captcha) {
         alert("请输入账号、密码和验证码");
         return;
       }
+      const toSubmit = {
+        username: this.account,
+        password: this.password,
+        code: this.captcha,
+        uuid: this.uuid,
+      };
       this.loading = true;
-      try {
-        // 使用你项目里的axios实例或其他请求工具
-        const response = await this.$axios.post("/login", {
-          username: this.account,
-          password: this.password,
-          code: this.captcha,
-          uuid: this.uuid,
+      userlogin(toSubmit)
+        .then((res) => {
+          alert("登录成功，返回数据：" + JSON.stringify(res));
+          // TODO: 登录成功后的操作，比如保存 token、跳转页面等
+        })
+        .catch((err) => {
+          alert("登录失败：" + (err.response?.data?.msg || err.message));
+          this.getCode(); // 登录失败刷新验证码
+        })
+        .finally(() => {
+          this.loading = false;
         });
-        const data = response.data;
-        if (data.success) {
-          alert(`登录成功！欢迎，${this.account}`);
-          this.$router.push("/ranking");
-        } else {
-          alert(data.message || "登录失败，请检查账号密码或验证码");
-          if (data.code === "CAPTCHA_ERROR") {
-            this.getCode();
-            this.captcha = "";
-          }
-        }
-      } catch (error) {
-        alert("登录异常，请稍后重试");
-        this.getCode();
-        this.captcha = "";
-      } finally {
-        this.loading = false;
-      }
     },
   },
 };
@@ -224,8 +219,13 @@ export default {
   transition: background-color 0.3s;
 }
 
-.btn-login:hover {
+.btn-login:hover:not(:disabled) {
   background-color: #2563eb;
+}
+
+.btn-login:disabled {
+  cursor: not-allowed;
+  background-color: #93c5fd;
 }
 
 .register-link {
