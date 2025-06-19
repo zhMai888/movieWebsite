@@ -11,7 +11,7 @@
             <router-link :to="{name: 'PersonDetail', params: {id: person.id}}" class="avatar-link">
               <img
                 class="person-avatar"
-                :src="person.avatar || defaultAvatar"
+                :src="getFullAvatarPath(person.photourl)"
                 :alt="person.name"
                 loading="lazy"
                 @error="handleImageError"
@@ -51,8 +51,19 @@ export default {
     }
   },
   methods: {
-    // 处理图片加载错误
+    getFullAvatarPath(filename) {
+      if (!filename) {
+        return this.defaultAvatar;
+      }
+      try {
+        return require(`@/assets/thumbnails_done/preson_posters/${filename}`);
+      } catch (error) {
+        console.error('[PeopleGrid] 加载头像失败:', error); // 捕获require错误
+        return this.defaultAvatar;
+      }
+    },
     handleImageError(event) {
+      console.warn('[PeopleGrid] 图片加载失败，替换为默认头像'); // 监听网络加载错误
       event.target.src = this.defaultAvatar;
     }
   }

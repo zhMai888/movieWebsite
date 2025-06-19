@@ -15,7 +15,7 @@
             >
               <img
                 class="movie-poster"
-                :src="movie.coverurl || defaultPoster"
+                :src="getFullPosterPath(movie.coverurl) || defaultPoster"
                 :alt="movie.name"
                 loading="lazy"
                 @error="handleImageError"
@@ -94,10 +94,23 @@ export default {
       return '未知年份';
     },
 
-    // 处理图片加载错误
+    // 获取完整海报路径
+    getFullPosterPath(filename) {
+      if (!filename) return null;
+
+      try {
+        // 开发环境使用require方式加载（webpack会处理）
+        return require(`@/assets/thumbnails_done/movie_posters/${filename}`);
+      } catch (e) {
+        // 生产环境使用直接路径
+        return `/assets/thumbnails_done/movie_posters/${filename}`;
+      }
+    },
+
+    // 修正错误处理方法
     handleImageError(event) {
-      // 可以在这里设置默认图片，或者只是防止控制台报错
-      event.target.style.display = <img src="@/assets/images/none.png" alt="none"/>;
+      event.target.src = this.defaultPoster;
+      event.target.onerror = null; // 防止默认图片也出错时无限循环
     },
 
     // 计算评分

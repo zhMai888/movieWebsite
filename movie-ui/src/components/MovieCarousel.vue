@@ -12,9 +12,10 @@
         @click="handleMovieClick(movie.id)"
       >
         <img
-          :src="movie.coverurl"
+          :src="getFullPosterPath(movie.coverurl)"
           :alt="movie.name"
           class="carousel-image"
+          @error="handleImageError"
         />
         <div class="movie-info">
           <h3 class="movie-title">{{ movie.name }}</h3>
@@ -35,16 +36,36 @@ export default {
       required: true
     }
   },
+  data() {
+    return {
+      defaultPoster: require('@/assets/images/none.png') // 新增默认图片
+    }
+  },
   computed: {
     firstFiveMovies() {
-      return this.movies.slice(0, 5)
+      return this.movies.slice(7, 12)
     }
   },
   methods: {
+    // 新增方法：拼接完整路径
+    getFullPosterPath(filename) {
+      if (!filename) return this.defaultPoster;
+      try {
+        return require(`@/assets/thumbnails_done/movie_posters/${filename}`);
+      } catch {
+        return this.defaultPoster;
+      }
+    },
+
+    // 新增方法：图片加载错误处理
+    handleImageError(event) {
+      event.target.src = this.defaultPoster;
+      event.target.onerror = null;
+    },
+
+    // 保持原有方法不变
     handleMovieClick(movieId) {
-      // 可以在这里实现点击跳转到电影详情页
       console.log('Clicked movie:', movieId)
-      // this.$router.push(`/movie/${movieId}`)
     }
   }
 }
