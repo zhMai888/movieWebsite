@@ -115,31 +115,28 @@ export const constantRoutes = [
   },
   {
     path: '/movies/:id',
-    name: 'MovieDetail',
     component: () => import('@/views/MovieDetail.vue'),  // 直接使用电影详情页面
-    meta: { title: '电影详情' }
+    hidden: true
   },
   {
     path: '/person/:type/:id',
-    name: 'PersonDetail',
     component: () => import('@/views/PersonDetail.vue'),
-    meta: { title: '人员详情' }
+    hidden: true
   },
   {
     path: '/ranking',
     component: () => import('@/views/Ranking.vue'),
-    meta: { title: '排行榜' },
-    hidden: false
+    hidden: true
   },
   {
     path: '/user-login',
     component: () => import('@/views/user-login.vue'),  // 直接使用电影详情页面
-    meta: { title: '用户登陆' }
+    hidden: true
   },
   {
     path: '/user-register',
     component: () => import('@/views/user-register.vue'),  // 直接使用电影详情页面
-    meta: { title: '用户注册' }
+    hidden: true
   }
 
 ]
