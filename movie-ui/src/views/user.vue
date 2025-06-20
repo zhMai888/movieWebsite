@@ -1,7 +1,7 @@
 <template>
   <div class="user-profile-container">
     <!-- 导航栏 -->
-    <Navigation/>
+    <Navigation />
 
     <div class="main-content">
       <!-- 左侧用户信息侧边栏 -->
@@ -15,14 +15,21 @@
           <!-- 用户基本信息 -->
           <div class="user-details">
             <h3>{{ userInfo.username || '未设置用户名' }}</h3>
-            <p><span class="label">邮箱:</span> {{ userInfo.email || '未设置邮箱' }}</p>
-            <p><span class="label">电话:</span> {{ userInfo.phone || '未设置电话' }}</p>
+            <div class="info-item">
+              <div class="label">邮箱：</div>
+              <div class="value">{{ userInfo.email || '未设置邮箱' }}</div>
+            </div>
+            <div class="info-item">
+              <div class="label">电话：</div>
+              <div class="value">{{ userInfo.phone || '未设置电话' }}</div>
+            </div>
           </div>
 
-          <!-- 充值按钮 -->
-          <button class="recharge-btn" @click="goToRecharge">
-            充值
-          </button>
+          <!-- 按钮区域 -->
+          <div class="action-buttons">
+            <button class="logout-btn" @click="logout">退出登录</button>
+            <button class="recharge-btn" @click="goToRecharge">充值</button>
+          </div>
         </div>
       </div>
 
@@ -45,11 +52,12 @@
 <script>
 import Navigation from '@/components/Navigation.vue'
 import MovieCard from '@/components/MovieCard.vue'
-import {getUsers} from '@/api/users/users'
-import {getCollections} from "@/api/collections/collections"
-import {getGenres} from "@/api/genres/genres";
+import { getUsers } from '@/api/users/users'
+import { getCollections } from "@/api/collections/collections"
+import { getGenres } from "@/api/genres/genres"
 import defaultAvatar from '@/assets/images/none.png'
 import { createAlipayOrder } from '@/api/order'
+import userInfo from "@/views/system/user/profile/userInfo.vue";
 
 export default {
   name: 'UserProfile',
@@ -67,42 +75,61 @@ export default {
     }
   },
   created() {
+    this.loadUserInfoFromSession()
     this.fetchUserData()
     this.fetchCollections()
+    if (!this.userInfo || !this.userInfo.id) {
+      this.$router.replace('/user-login') // 或 window.location.replace
+    }
   },
   methods: {
-    getFullAvatarPath(filename) {
-      if (!filename) return defaultAvatar;
-      return require(`@/assets/user_avatars/${filename}`);
+    loadUserInfoFromSession() {
+      const userInfoStr = sessionStorage.getItem('userInfo')
+      if (userInfoStr) {
+        try {
+          this.userInfo = JSON.parse(userInfoStr)
+        } catch (err) {
+          console.error('sessionStorage 中 userInfo 解析失败', err)
+        }
+      }
     },
+
+    getFullAvatarPath(filename) {
+      if (!filename) return defaultAvatar
+      try {
+        return require(`@/assets/user_avatars/${filename}`)
+      } catch (e) {
+        console.warn('头像加载失败:', filename)
+        return defaultAvatar
+      }
+    },
+
     async fetchUserData() {
       try {
         const userId = this.$store.state.user.id || localStorage.getItem('userId')
-
         if (!userId) {
-          this.$message.error('用户未登录');
-          return;
+          this.$message.error('用户未登录')
+          return
         }
-
         const response = await getUsers(userId)
         this.userInfo = response.data
+        sessionStorage.setItem('userInfo', JSON.stringify(response.data))
       } catch (error) {
         this.$message.error('获取用户信息失败')
       }
     },
+
     async fetchCollections() {
       try {
         const userId = this.$store.state.user.id || localStorage.getItem('userId')
-
         if (!userId) {
-          this.$message.error('用户未登录');
-          return;
+          this.$message.error('用户未登录')
+          return
         }
 
         const response = await getCollections(userId)
         const rawMovies = response.rows || response.data || []
 
-        // 获取类型并补充到每部电影上
         const moviesWithTypes = await Promise.all(
           rawMovies.map(async (movie) => {
             let type = 'Unknown'
@@ -135,13 +162,20 @@ export default {
 
         await createAlipayOrder(outTradeNo)
 
-        // 直接跳转到支付链接（与后端接口一致）
         const paymentUrl = `http://localhost:8080/alipay/pay?outTradeNo=${outTradeNo}&totalAmount=8.88&subject=购买VIP`
         window.location.href = paymentUrl
       } catch (error) {
         console.error('支付请求失败:', error)
         this.$message.error('支付请求失败，请稍后重试')
       }
+    },
+    logout() {
+      // 清除 sessionStorage 中的登录信息
+      sessionStorage.removeItem('userInfo')
+      localStorage.removeItem('userId')
+
+      // 强制跳转登录页，并刷新页面（重要）
+      window.location.replace('/user-login')  // ✅ 硬跳转刷新整个应用，无法“返回”
     }
   }
 }
@@ -159,7 +193,7 @@ export default {
   flex: 1;
   padding: 20px;
   gap: 20px;
-  position: relative; /* 添加相对定位 */
+  position: relative;
 }
 
 .movie-collections {
@@ -167,17 +201,17 @@ export default {
   padding: 20px;
   background-color: #f5f5f5;
   border-radius: 8px;
-  margin-left: 320px; /* 为固定侧边栏留出空间 */
+  margin-left: 320px;
 }
 
 .user-sidebar {
   width: 300px;
-  position: fixed; /* 改为fixed定位 */
-  top: 80px; /* 根据导航栏高度调整 */
-  bottom: 0; /* 延伸到页面底部 */
-  left: 20px; /* 与main-content的padding一致 */
-  height: calc(100vh - 100px); /* 计算高度减去导航栏和间距 */
-  overflow-y: auto; /* 如果内容过多可以滚动 */
+  position: fixed;
+  top: 80px;
+  bottom: 0;
+  left: 20px;
+  height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 .user-info-card {
@@ -202,15 +236,33 @@ export default {
 .user-details {
   margin: 20px 0;
   text-align: center;
+  width: 100%;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 每项之间间距 */
+}
+
+.info-item .label {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.info-item .value {
+  color: #666;
+  word-break: break-all;
 }
 
 .user-details h3 {
-  margin: 0 0 10px;
+  font-size: 40px;
+  text-align: center;
+  margin: 0 0 20px;
   color: #333;
 }
 
 .user-details p {
-  margin: 5px 0;
+  margin: 20px 0;
   color: #666;
 }
 
@@ -219,19 +271,42 @@ export default {
   color: #333;
 }
 
-.recharge-btn {
+.action-buttons {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+.recharge-btn,
+.logout-btn {
+  width: 80%;
   padding: 10px 20px;
-  background-color: #ff5f5f;
-  color: white;
+  font-size: 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
   transition: background-color 0.3s;
+}
+
+.recharge-btn {
+  background-color: #ff5f5f;
+  color: white;
 }
 
 .recharge-btn:hover {
   background-color: #ff3f3f;
+}
+
+.logout-btn {
+  background-color: #666;
+  color: white;
+}
+
+.logout-btn:hover {
+  background-color: #444;
 }
 
 .loading-indicator {
@@ -247,12 +322,12 @@ export default {
   }
 
   .movie-collections {
-    margin-left: 0; /* 移动端取消左边距 */
-    margin-top: 20px; /* 添加顶部间距 */
+    margin-left: 0;
+    margin-top: 20px;
   }
 
   .user-sidebar {
-    position: static; /* 移动端恢复静态定位 */
+    position: static;
     width: 100%;
     height: auto;
     margin-bottom: 20px;

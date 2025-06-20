@@ -84,6 +84,7 @@
       <!-- 用户头像 -->
       <router-link to="/user" class="user-avatar">
         <img :src="userAvatar" alt="用户头像" class="avatar-image" />
+        <span>{{ usename }}</span>
       </router-link>
     </div>
   </header>
@@ -104,7 +105,8 @@ export default {
     return {
       keyword: "",
       showHistory: false,
-      userAvatar: userAvatar,
+      userAvatar: '',
+      usename:'',
       clickOutsideListener: null,
       searchHistory: []
     };
@@ -127,6 +129,23 @@ export default {
   },
   created() {
     this.loadSearchHistory();
+    const userInfoStr = sessionStorage.getItem('userInfo');
+    if (userInfoStr) {
+      try {
+        const userInfo = JSON.parse(userInfoStr);
+
+        if (userInfo.userurl) {
+          this.userAvatar = require(`@/assets/user_avatars/${userInfo.userurl}`);
+        } else {
+          this.userAvatar = require('@/assets/images/none.png'); // 默认头像
+        }
+
+        this.username = userInfo.username || '未命名用户';
+      } catch (e) {
+        console.error('userInfo解析失败', e);
+        this.userAvatar = require('@/assets/images/none.png');
+      }
+    }
   },
   mounted() {
     this.clickOutsideListener = (event) => {
