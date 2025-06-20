@@ -3,7 +3,7 @@
     <Navigation />
     <div class="person-detail" v-if="!loading">
       <!-- 头部信息 -->
-      <div class="header">
+      <div class="header1">
         <img :src="getFullPhotoPath(person.photourl) || defaultAvatar" alt="头像" />
         <div class="info">
           <h1>{{ person.name || '无姓名' }}</h1>
@@ -153,13 +153,13 @@ export default {
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
 }
 
-.header {
+.header1 {
   display: flex;
   align-items: center;
   margin-bottom: 30px;
 }
 
-.header img {
+.header1 img {
   width: 150px;
   height: 150px;
   border-radius: 50%;
