@@ -106,7 +106,7 @@ export default {
 
     async fetchUserData() {
       try {
-        const userId = this.$store.state.user.id || localStorage.getItem('userId')
+        const userId = this.userInfo.id
         if (!userId) {
           this.$message.error('用户未登录')
           return
@@ -121,7 +121,7 @@ export default {
 
     async fetchCollections() {
       try {
-        const userId = this.$store.state.user.id || localStorage.getItem('userId')
+        const userId = this.userInfo.id
         if (!userId) {
           this.$message.error('用户未登录')
           return

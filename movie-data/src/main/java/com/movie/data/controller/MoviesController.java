@@ -35,7 +35,6 @@ public class MoviesController extends BaseController
     /**
      * 查询电影表列表
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:list')")
     @GetMapping("/list")
     public TableDataInfo list(Movies movies, String actors, String directors,
                               Long beginCount, Long endCount,
@@ -122,7 +121,6 @@ public class MoviesController extends BaseController
     /**
      * 获取电影表详细信息
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
@@ -249,7 +247,6 @@ public class MoviesController extends BaseController
     /**
      * 搜索地区列表
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:list')")
     @GetMapping("/searchAreas")
     public AjaxResult searchAreas() {
         List<Areas> areasList = moviesService.selectAreasList(new Areas());
@@ -259,7 +256,6 @@ public class MoviesController extends BaseController
     /**
      * 搜索电影类型列表
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:list')")
     @GetMapping("/searchGenres")
     public AjaxResult searchGenres() {
         List<Genres> genresList = moviesService.selectGenresList(new Genres());
@@ -269,7 +265,6 @@ public class MoviesController extends BaseController
     /**
      * 搜索主演列表
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:list')")
     @GetMapping("/listActors")
     public AjaxResult listActors() {
         List<Actors> actorsList = moviesService.selectActorsList(new Actors());
@@ -279,7 +274,6 @@ public class MoviesController extends BaseController
     /**
      * 搜索导演列表
      */
-    @PreAuthorize("@ss.hasPermi('movies:movies:list')")
     @GetMapping("/listDirectors")
     public AjaxResult listDirectors() {
         List<Directors> directorsList = moviesService.selectDirectorsList(new Directors());

@@ -43,7 +43,6 @@ public class UsersController extends BaseController
     /**
      * 查询用户表列表
      */
-    @PreAuthorize("@ss.hasPermi('users:users:list')")
     @GetMapping("/list")
     public TableDataInfo list(Users users)
     {
@@ -55,7 +54,6 @@ public class UsersController extends BaseController
     /**
      * 导出用户表列表
      */
-    @PreAuthorize("@ss.hasPermi('users:users:export')")
     @Log(title = "用户表", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Users users)
@@ -68,7 +66,6 @@ public class UsersController extends BaseController
     /**
      * 获取用户表详细信息
      */
-    @PreAuthorize("@ss.hasPermi('users:users:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
@@ -78,7 +75,6 @@ public class UsersController extends BaseController
     /**
      * 用户登录
      */
-    @PreAuthorize("@ss.hasPermi('users:users:query')")
     @PostMapping("/login")
     public Users Login(@RequestBody Map<String, String> data) {
         String username = data.get("username");
@@ -118,7 +114,6 @@ public class UsersController extends BaseController
     /**
      * 新增用户表
      */
-    @PreAuthorize("@ss.hasPermi('users:users:add')")
     @Log(title = "用户表", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Users users)
@@ -129,7 +124,6 @@ public class UsersController extends BaseController
     /**
      * 修改用户表
      */
-    @PreAuthorize("@ss.hasPermi('users:users:edit')")
     @Log(title = "用户表", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Users users)
@@ -140,7 +134,6 @@ public class UsersController extends BaseController
     /**
      * 删除用户表
      */
-    @PreAuthorize("@ss.hasPermi('users:users:remove')")
     @Log(title = "用户表", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)

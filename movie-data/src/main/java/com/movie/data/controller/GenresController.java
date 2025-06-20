@@ -37,7 +37,6 @@ public class GenresController extends BaseController
     /**
      * 查询类别表列表
      */
-    @PreAuthorize("@ss.hasPermi('genres:genres:list')")
     @GetMapping("/list")
     public TableDataInfo list(Genres genres)
     {
@@ -62,7 +61,6 @@ public class GenresController extends BaseController
     /**
      * 获取类别表详细信息
      */
-    @PreAuthorize("@ss.hasPermi('genres:genres:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {

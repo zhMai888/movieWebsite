@@ -3,7 +3,7 @@
     <div class="login-container">
       <!-- 左侧预留图片区域 -->
       <div class="login-image">
-        <img src="" alt="登录展示图" v-if="false" />
+        <img src="@/assets/images/bg2.jpeg" alt="登录展示图" />
       </div>
 
       <!-- 右侧登录表单 -->

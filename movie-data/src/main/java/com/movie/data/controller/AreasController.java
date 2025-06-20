@@ -37,7 +37,6 @@ public class AreasController extends BaseController
     /**
      * 查询地区列表
      */
-    @PreAuthorize("@ss.hasPermi('areas:areas:list')")
     @GetMapping("/list")
     public TableDataInfo list(Areas areas)
     {
@@ -62,7 +61,6 @@ public class AreasController extends BaseController
     /**
      * 获取地区详细信息
      */
-    @PreAuthorize("@ss.hasPermi('areas:areas:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
