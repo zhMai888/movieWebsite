@@ -212,10 +212,10 @@ export default {
 }
 
 /* 响应式设计 */
-@media (max-width: 1500px) {
+@media (max-width: 2000px) {
   .person-card-wrapper { width: 100%; }
 }
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
   .person-card-wrapper { width: 100%; }
 }
 @media (max-width: 992px) {

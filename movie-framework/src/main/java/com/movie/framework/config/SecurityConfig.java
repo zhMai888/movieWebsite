@@ -112,6 +112,9 @@ public class SecurityConfig
                 permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
                 // 支付宝支付接口放行
                 requests.antMatchers("/alipay/pay", "/alipay/notify").permitAll();
+                // 前端方法放行
+                requests.antMatchers("/actors/actors/**","/areas/areas/**","/collections/collections/**","/directors/directors/**","/genres/genres/**","/mad/mad/**","/movies/movies/**","/users/users/**",
+                        "/captchaImage").permitAll();
                 // 对于登录login 注册register 验证码captchaImage 允许匿名访问
                 requests.antMatchers("/login", "/register", "/captchaImage").permitAll()
                     // 静态资源，可匿名访问

@@ -2,7 +2,7 @@
   <div class="register-page">
     <div class="register-container">
       <div class="register-image">
-        <img src="" alt="注册展示图" v-if="false" />
+        <img src="@/assets/images/bg2.jpeg" alt="登录展示图" />
       </div>
 
       <div class="register-form">

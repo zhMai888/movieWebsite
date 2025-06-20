@@ -37,7 +37,6 @@ public class ActorsController extends BaseController
     /**
      * 查询演员列表
      */
-    @PreAuthorize("@ss.hasPermi('actors:actors:list')")
     @GetMapping("/list")
     public TableDataInfo list(Actors actors)
     {
@@ -62,7 +61,6 @@ public class ActorsController extends BaseController
     /**
      * 获取演员详细信息
      */
-    @PreAuthorize("@ss.hasPermi('actors:actors:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {

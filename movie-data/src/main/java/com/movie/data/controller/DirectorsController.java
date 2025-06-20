@@ -37,7 +37,6 @@ public class DirectorsController extends BaseController
     /**
      * 查询导演列表
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:list')")
     @GetMapping("/list")
     public TableDataInfo list(Directors directors)
     {
@@ -49,7 +48,6 @@ public class DirectorsController extends BaseController
     /**
      * 导出导演列表
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:export')")
     @Log(title = "导演", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Directors directors)
@@ -62,7 +60,6 @@ public class DirectorsController extends BaseController
     /**
      * 获取导演详细信息
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
@@ -72,7 +69,6 @@ public class DirectorsController extends BaseController
     /**
      * 新增导演
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:add')")
     @Log(title = "导演", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Directors directors)
@@ -83,7 +79,6 @@ public class DirectorsController extends BaseController
     /**
      * 修改导演
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:edit')")
     @Log(title = "导演", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Directors directors)
@@ -94,7 +89,6 @@ public class DirectorsController extends BaseController
     /**
      * 删除导演
      */
-    @PreAuthorize("@ss.hasPermi('directors:directors:remove')")
     @Log(title = "导演", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
