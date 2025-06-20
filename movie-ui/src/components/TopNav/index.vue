@@ -36,7 +36,7 @@ import { constantRoutes } from "@/router"
 import { isHttp } from "@/utils/validate"
 
 // 隐藏侧边栏路由
-const hideList = ['/index', '/user.vue/profile']
+const hideList = ['/index', '/myself.vue/profile']
 
 export default {
   data() {

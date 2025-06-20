@@ -115,7 +115,7 @@ export default {
     },
     /** 关闭按钮 */
     close() {
-      const obj = { path: "/system/user.vue" }
+      const obj = { path: "/system/myself.vue" }
       this.$tab.closeOpenPage(obj)
     }
   }
