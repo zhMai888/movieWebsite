@@ -128,6 +128,7 @@ export default {
   created() {
     this.loadSearchHistory();
     const userInfoStr = sessionStorage.getItem('userInfo');
+    console.log(userInfoStr)
     if (userInfoStr) {
       try {
         const userInfo = JSON.parse(userInfoStr);

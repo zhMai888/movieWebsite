@@ -28,7 +28,11 @@
           <!-- 按钮区域 -->
           <div class="action-buttons">
             <button class="logout-btn" @click="logout">退出登录</button>
-            <button class="recharge-btn" @click="goToRecharge">充值</button>
+            <button
+              v-if="!userInfo.userType"
+              class="recharge-btn"
+              @click="goToRecharge"
+            >充值</button>
           </div>
         </div>
       </div>
