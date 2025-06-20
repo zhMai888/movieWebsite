@@ -139,7 +139,14 @@ export const constantRoutes = [
     path: '/user-register',
     component: () => import('@/views/user-register.vue'),  // 直接使用电影详情页面
     hidden: true
+  },
+  {
+    path: '/play/:id',
+    name: 'MoviePlayer',
+    component: () => import('@/views/MoviePlayer.vue'),
+    hidden: true
   }
+
 
 ]
 

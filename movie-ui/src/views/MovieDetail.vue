@@ -164,10 +164,10 @@ export default {
       }
     },
     handlePlay() {
-      if (this.movie.movieurl) {
-        window.open(this.movie.movieurl, "_blank");
+      if (this.movie && this.movie.id) {
+        this.$router.push(`/play/${this.movie.id}`);
       } else {
-        alert("播放地址为空");
+        alert("播放信息缺失");
       }
     },
     toggleFavorite() {

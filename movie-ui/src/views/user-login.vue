@@ -11,12 +11,12 @@
         <h2>登录观影斋</h2>
         <form @submit.prevent="handleLogin">
           <div class="form-group">
-            <label for="account">账号（手机号或邮箱）</label>
+            <label for="account">账号</label>
             <input
               id="account"
               v-model="account"
               type="text"
-              placeholder="请输入手机号或邮箱"
+              placeholder="请输入账号"
               required
               autocomplete="username"
             />
