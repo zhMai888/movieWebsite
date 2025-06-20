@@ -47,6 +47,39 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/movies/:id',
+    name: 'MovieDetail',
+    component: () => import('@/views/MovieDetail.vue'),  // 直接使用电影详情页面
+    hidden: true
+  },
+  {
+    path: '/person/:type/:id',
+    name: 'PersonDetail',
+    component: () => import('@/views/PersonDetail.vue'),
+    hidden: true
+  },
+  {
+    path: '/ranking',
+    component: () => import('@/views/Ranking.vue'),
+    hidden: true
+  },
+  {
+    path: '/user-login',
+    component: () => import('@/views/user-login.vue'),  // 直接使用电影详情页面
+    hidden: true
+  },
+  {
+    path: '/user-register',
+    component: () => import('@/views/user-register.vue'),  // 直接使用电影详情页面
+    hidden: true
+  },
+  {
+    path: '/play/:id',
+    name: 'MoviePlayer',
+    component: () => import('@/views/MoviePlayer.vue'),
+    hidden: true
+  },
+  {
     path: '/category',
     component: () => import('@/views/Category'),
     hidden: true
@@ -61,11 +94,11 @@ export const constantRoutes = [
     component: () => import('@/views/directors'),
     hidden: true
   },
-  {
-    path: '/user',
-    component: () => import('@/views/user'),
-    hidden: true
-  },
+  // {
+  //   path: '/user',
+  //   component: () => import('@/views/user'),
+  //   hidden: true
+  // },
   {
     path: '/login',
     component: () => import('@/views/login'),
@@ -100,7 +133,7 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/user.vue',
+    path: '/user',
     component: Layout,
     hidden: true,
     redirect: 'noredirect',
@@ -112,39 +145,6 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
-  },
-  {
-    path: '/movies/:id',
-    name: 'MovieDetail',
-    component: () => import('@/views/MovieDetail.vue'),  // 直接使用电影详情页面
-    hidden: true
-  },
-  {
-    path: '/person/:type/:id',
-    name: 'PersonDetail',
-    component: () => import('@/views/PersonDetail.vue'),
-    hidden: true
-  },
-  {
-    path: '/ranking',
-    component: () => import('@/views/Ranking.vue'),
-    hidden: true
-  },
-  {
-    path: '/user-login',
-    component: () => import('@/views/user-login.vue'),  // 直接使用电影详情页面
-    hidden: true
-  },
-  {
-    path: '/user-register',
-    component: () => import('@/views/user-register.vue'),  // 直接使用电影详情页面
-    hidden: true
-  },
-  {
-    path: '/play/:id',
-    name: 'MoviePlayer',
-    component: () => import('@/views/MoviePlayer.vue'),
-    hidden: true
   }
 
 

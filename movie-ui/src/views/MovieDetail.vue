@@ -5,8 +5,14 @@
       <!-- 左侧大海报 -->
       <div class="poster-wrapper">
         <img
-          v-if="movie.coverurl"
+          v-if="movie.coverurl && movie.coverurl !== '' && movie.coverurl !== null "
           :src="getFullPosterPath(movie.coverurl)"
+          alt="电影封面"
+          class="poster"
+        />
+        <img
+          v-else
+          src="../assets/images/none.png"
           alt="电影封面"
           class="poster"
         />
@@ -68,7 +74,7 @@
           </div>
 
           <p><strong>是否需要 VIP 权限：</strong>{{ vipText }}</p>
-          <p><strong>播放地址：</strong><a :href="movie.movieurl" target="_blank" class="movie-url">{{ movie.movieurl }}</a></p>
+<!--          <p><strong>播放地址：</strong><a :href="movie.movieurl" target="_blank" class="movie-url">{{ movie.movieurl }}</a></p>-->
         </div>
 
         <div class="people-section">
@@ -128,7 +134,8 @@ export default {
       isFavorite: false,
       rating: 0,
       tempRating: 0,
-      hasRated: false
+      hasRated: false,
+      userType: null,
     };
   },
   computed: {
@@ -164,10 +171,25 @@ export default {
       }
     },
     handlePlay() {
-      if (this.movie && this.movie.id) {
-        this.$router.push(`/play/${this.movie.id}`);
-      } else {
-        alert("播放信息缺失");
+      if(this.userType == null){
+        const userInfoStr = sessionStorage.getItem("userInfo");
+        if (userInfoStr) {
+          try {
+            const userInfo = JSON.parse(userInfoStr);
+            this.userType = userInfo.userType || null;  // 假设id字段叫id，根据实际改
+          } catch (e) {
+            console.warn("解析userInfo失败", e);
+          }
+        }
+      }
+      if ((this.movie.see && this.userType) || !this.movie.see){
+        if (this.movie && this.movie.id) {
+          this.$router.push(`/play/${this.movie.id}`);
+        } else {
+          alert("播放信息缺失");
+        }
+      }else{
+        alert("权限不足")
       }
     },
     toggleFavorite() {
@@ -187,7 +209,7 @@ export default {
     try {
       const res = await getMovies(movieId);
       if (res.code === 200 && res.data) this.movie = res.data;
-
+      console.log(this.movie)
       const directorIdList = await getDirectorIdsByMovie(movieId);
       if (Array.isArray(directorIdList)) {
         const details = await Promise.all(
@@ -247,7 +269,8 @@ export default {
 }
 
 .poster {
-  width: 100%;
+  width: 280px;
+  height: 415px;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
 }
@@ -256,7 +279,10 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
+  max-width: 600px;  /* 限制最大宽度，值可以根据需要调整 */
+  width: 100%;       /* 保证在小屏时自动缩小 */
 }
+
 
 .movie-title {
   font-size: 2.2rem;
@@ -311,6 +337,9 @@ export default {
   line-height: 1.5;
   margin-bottom: 20px;
   color: #444;
+  word-wrap: break-word;    /* 老浏览器兼容 */
+  word-break: break-word;   /* 支持自动换行 */
+  white-space: normal;      /* 确保允许换行 */
 }
 
 .action-buttons {
