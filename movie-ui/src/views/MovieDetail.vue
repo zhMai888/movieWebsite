@@ -48,7 +48,10 @@
         <!-- 播放和收藏按钮 -->
         <div class="action-buttons">
           <button @click="handlePlay" class="btn-play">播放</button>
-          <button @click="toggleFavorite" :class="{'btn-favorite': true, 'favorited': isFavorite}">
+          <button
+            @click="toggleFavorite"
+            :class="{'btn-favorite': true, 'favorited': isFavorite}"
+          >
             {{ isFavorite ? '已收藏' : '收藏' }}
           </button>
         </div>
@@ -74,7 +77,6 @@
           </div>
 
           <p><strong>是否需要 VIP 权限：</strong>{{ vipText }}</p>
-<!--          <p><strong>播放地址：</strong><a :href="movie.movieurl" target="_blank" class="movie-url">{{ movie.movieurl }}</a></p>-->
         </div>
 
         <div class="people-section">
@@ -115,11 +117,20 @@
 
 <script>
 import Navigation from "@/components/Navigation.vue";
-import { getMovies, getActorIdsByMovie, getDirectorIdsByMovie } from "@/api/movies/movies";
+import {
+  getMovies,
+  getActorIdsByMovie,
+  getDirectorIdsByMovie,
+} from "@/api/movies/movies";
 import { getActors } from "@/api/actors/actors";
 import { getDirectors } from "@/api/directors/directors";
 import { listGenres } from "@/api/genres/genres";
 import { listAreas } from "@/api/areas/areas";
+import {
+  getCollections,
+  addCollections,
+  deleteCollections,
+} from "@/api/collections/collections";
 
 export default {
   name: "MovieDebug",
@@ -136,22 +147,23 @@ export default {
       tempRating: 0,
       hasRated: false,
       userType: null,
+      userId: null,
     };
   },
   computed: {
     areaName() {
-      const area = this.areas.find(a => a.id === this.movie.areaId);
+      const area = this.areas.find((a) => a.id === this.movie.areaId);
       return area ? area.areaname : "未知地区";
     },
     genreName() {
-      const genre = this.genres.find(g => g.id === this.movie.genreId);
+      const genre = this.genres.find((g) => g.id === this.movie.genreId);
       return genre ? genre.type : "未知类型";
     },
     vipText() {
       if (this.movie.see === 1 || this.movie.see === true) return "是";
       if (this.movie.see === 0 || this.movie.see === false) return "否";
       return "未知";
-    }
+    },
   },
   methods: {
     getFullPosterPath(filename) {
@@ -171,73 +183,131 @@ export default {
       }
     },
     handlePlay() {
-      if(this.userType == null){
+      if (this.userType == null) {
         const userInfoStr = sessionStorage.getItem("userInfo");
         if (userInfoStr) {
           try {
             const userInfo = JSON.parse(userInfoStr);
-            this.userType = userInfo.userType || null;  // 假设id字段叫id，根据实际改
+            this.userType = userInfo.userType || null;
           } catch (e) {
             console.warn("解析userInfo失败", e);
           }
         }
       }
-      if ((this.movie.see && this.userType) || !this.movie.see){
+      if ((this.movie.see && this.userType) || !this.movie.see) {
         if (this.movie && this.movie.id) {
           this.$router.push(`/play/${this.movie.id}`);
         } else {
           alert("播放信息缺失");
         }
-      }else{
-        alert("权限不足")
+      } else {
+        alert("权限不足");
       }
     },
-    toggleFavorite() {
-      this.isFavorite = !this.isFavorite;
-      alert(this.isFavorite ? "收藏成功" : "取消收藏");
+
+    async toggleFavorite() {
+      if (!this.userId) {
+        alert("请先登录后再操作收藏");
+        return;
+      }
+
+      const movieId = this.movie.id;
+      if (!movieId) {
+        alert("电影信息不完整，无法收藏");
+        return;
+      }
+
+      try {
+        if (this.isFavorite) {
+          // 取消收藏
+          const res = await deleteCollections(this.userId, movieId);
+          if (res.code === 200) {
+            this.isFavorite = false;
+            alert("取消收藏成功");
+          } else {
+            alert("取消收藏失败：" + (res.msg || "未知错误"));
+          }
+        } else {
+          // 添加收藏
+          const res = await addCollections(this.userId, movieId);
+          if (res.code === 200) {
+            this.isFavorite = true;
+            alert("收藏成功");
+          } else {
+            alert("收藏失败：" + (res.msg || "未知错误"));
+          }
+        }
+      } catch (err) {
+        console.error("收藏操作异常", err);
+        alert("操作失败，请稍后重试");
+      }
     },
+
     submitRating(star) {
       if (this.hasRated) return;
       this.rating = star;
       this.hasRated = true;
       this.movie.scoreCount = (this.movie.scoreCount || 0) + 1;
       this.movie.scoreTotal = (this.movie.scoreTotal || 0) + star;
-    }
+    },
   },
   async created() {
     const movieId = this.$route.params.id;
+
+    // 获取电影数据
     try {
       const res = await getMovies(movieId);
       if (res.code === 200 && res.data) this.movie = res.data;
-      console.log(this.movie)
+
+      // 获取导演
       const directorIdList = await getDirectorIdsByMovie(movieId);
       if (Array.isArray(directorIdList)) {
         const details = await Promise.all(
-          directorIdList.map(id =>
-            getDirectors(id).then(res => res.data || res)
-          )
+          directorIdList.map((id) => getDirectors(id).then((res) => res.data || res))
         );
         this.directors = details;
       }
 
+      // 获取演员
       const actorIdList = await getActorIdsByMovie(movieId);
       if (Array.isArray(actorIdList)) {
         const details = await Promise.all(
-          actorIdList.map(id =>
-            getActors(id).then(res => res.data || res)
-          )
+          actorIdList.map((id) => getActors(id).then((res) => res.data || res))
         );
         this.actors = details;
       }
 
+      // 获取类型与地区
       const genresRes = await listGenres({ pageSize: 100 });
       if (genresRes.rows) this.genres = genresRes.rows;
       const areasRes = await listAreas({ pageSize: 100 });
       if (areasRes.rows) this.areas = areasRes.rows;
+
+      // 获取用户收藏信息并判断是否收藏该电影
+      const userInfoStr = sessionStorage.getItem("userInfo");
+      if (userInfoStr) {
+        try {
+          const userInfo = JSON.parse(userInfoStr);
+          this.userId = userInfo.id;
+          this.userType = userInfo.userType;
+
+          const collectionsRes = await getCollections(this.userId);
+          console.log("收藏接口返回内容：", collectionsRes);
+
+          if (collectionsRes.code === 200 && Array.isArray(collectionsRes.rows)) {
+            // rows数组里的id字段对应电影id
+            this.isFavorite = collectionsRes.rows.some(
+              (item) => item.id === Number(movieId)
+            );
+          }
+        } catch (e) {
+          console.warn("解析 userInfo 或收藏信息失败", e);
+        }
+      }
     } catch (err) {
       console.error("获取数据失败：" + err.message);
     }
-  }
+  },
 };
 </script>
 
@@ -279,10 +349,9 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 600px;  /* 限制最大宽度，值可以根据需要调整 */
-  width: 100%;       /* 保证在小屏时自动缩小 */
+  max-width: 600px;
+  width: 100%;
 }
-
 
 .movie-title {
   font-size: 2.2rem;
@@ -337,9 +406,9 @@ export default {
   line-height: 1.5;
   margin-bottom: 20px;
   color: #444;
-  word-wrap: break-word;    /* 老浏览器兼容 */
-  word-break: break-word;   /* 支持自动换行 */
-  white-space: normal;      /* 确保允许换行 */
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .action-buttons {
@@ -390,15 +459,6 @@ export default {
   margin: 5px 0;
   font-size: 0.9rem;
   color: #555;
-}
-
-.movie-url {
-  color: #3498db;
-  text-decoration: none;
-}
-
-.movie-url:hover {
-  text-decoration: underline;
 }
 
 .watch-counts {
