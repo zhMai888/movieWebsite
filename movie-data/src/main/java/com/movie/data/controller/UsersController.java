@@ -1,6 +1,7 @@
 package com.movie.data.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -79,7 +80,9 @@ public class UsersController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('users:users:query')")
     @PostMapping("/login")
-    public Users Login(String username, String password) {
+    public Users Login(@RequestBody Map<String, String> data) {
+        String username = data.get("username");
+        String password = data.get("password");
         return usersService.login(username, password);
     }
 
@@ -88,7 +91,9 @@ public class UsersController extends BaseController
      */
 
     @PostMapping("/captcha")
-    public int JudgeCaptcha(String code, String uuid){
+    public int JudgeCaptcha(@RequestBody Map<String, String> data){
+        String code = data.get("code");
+        String uuid = data.get("uuid");
         if (uuid == null || uuid.isEmpty()) {
             return 0;
         }
@@ -96,6 +101,9 @@ public class UsersController extends BaseController
         String cacheCode = stringRedisTemplate.opsForValue().get(key);
         if (cacheCode == null) {
             return 2; // 验证码过期或不存在
+        }
+        if (cacheCode.startsWith("\"") && cacheCode.endsWith("\"")) {
+            cacheCode = cacheCode.substring(1, cacheCode.length() - 1);
         }
         if (cacheCode.equalsIgnoreCase(code)) {
             stringRedisTemplate.delete(key);

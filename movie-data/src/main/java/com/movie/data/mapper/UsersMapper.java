@@ -2,7 +2,7 @@ package com.movie.data.mapper;
 
 import java.util.List;
 import com.movie.data.domain.Users;
-
+import org.apache.ibatis.annotations.Param; // ✅ 加上这一行
 /**
  * 用户表Mapper接口
  * 
@@ -59,7 +59,7 @@ public interface UsersMapper
      */
     public int deleteUsersByIds(Long[] ids);
 
-    Users login(String username, String password);
+    Users login(@Param("username") String username, @Param("password") String password); // ✅ 修改这里
 
     void updateUserVIP(Long userId);
 

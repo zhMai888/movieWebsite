@@ -83,10 +83,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </foreach>
     </delete>
 
-    <select id="login" parameterType="Users">
+    <select id="login" parameterType="map" resultMap="UsersResult">
         select * from users
         where username = #{username} and password = #{password}
     </select>
+
 
 
     <update id="updateUserVIP" parameterType="java.lang.Long">

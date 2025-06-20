@@ -70,7 +70,7 @@
 
 <script>
 import { getCodeImg } from "@/api/login"; // 你的验证码接口
-import { userlogin } from "@/api/users/users"; // 登录接口
+import { userlogin,checkCaptcha } from "@/api/users/users"; // 登录接口
 
 export default {
   name: "UserLogin",
@@ -100,29 +100,55 @@ export default {
         });
     },
     handleLogin() {
+      this.getCode()
       if (!this.account || !this.password || !this.captcha) {
-        alert("请输入账号、密码和验证码");
+        alert("账号、密码和验证码不能为空");
+        this.captcha = ""
         return;
       }
-      const toSubmit = {
-        username: this.account,
-        password: this.password,
+      const toCaptcha = {
         code: this.captcha,
         uuid: this.uuid,
       };
       this.loading = true;
-      userlogin(toSubmit)
+      checkCaptcha(toCaptcha)
         .then((res) => {
-          alert("登录成功，返回数据：" + JSON.stringify(res));
-          // TODO: 登录成功后的操作，比如保存 token、跳转页面等
+          if(res===0) {
+            alert("验证码错误请重新输入")
+            this.captcha = ""
+          }else if(res===2){
+            alert("验证码已过期请重新输入")
+            this.captcha = ""
+          }else{
+            const toLogin = {
+              username: this.account,
+              password: this.password
+            }
+            userlogin(toLogin)
+              .then((res) => {
+                if(res == null || res === ""){
+                  alert("账号或密码错误，请重新输入")
+                  this.password = ""
+                  this.captcha = ""
+                }else{
+                  sessionStorage.setItem("userInfo", JSON.stringify(res));
+                  location.replace("/home");
+                }
+              })
+              .catch((err) => {
+                alert("登录失败：" + (err.response?.data?.msg || err.message));
+              })
+          }
         })
         .catch((err) => {
           alert("登录失败：" + (err.response?.data?.msg || err.message));
-          this.getCode(); // 登录失败刷新验证码
+          this.account = ""
+          this.password = ""
+          this.captcha = ""
         })
-        .finally(() => {
+        .finally(() =>{
           this.loading = false;
-        });
+        })
     },
   },
 };

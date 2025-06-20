@@ -1,62 +1,44 @@
 <template>
   <div class="register-page">
     <div class="register-container">
-      <!-- 左侧预留图片区域 -->
       <div class="register-image">
-        <!-- 这里放图片或者背景图 -->
         <img src="" alt="注册展示图" v-if="false" />
       </div>
 
-      <!-- 右侧注册表单 -->
       <div class="register-form">
         <h2>注册观影斋</h2>
         <form @submit.prevent="handleRegister">
           <div class="form-group">
             <label for="username">用户名</label>
-            <input
-              id="username"
-              v-model.trim="username"
-              type="text"
-              placeholder="请输入用户名"
-              required
-              autocomplete="username"
-            />
+            <input id="username" v-model.trim="username" type="text" placeholder="请输入用户名" required />
           </div>
 
           <div class="form-group">
-            <label for="account">手机号或邮箱</label>
-            <input
-              id="account"
-              v-model.trim="account"
-              type="text"
-              placeholder="请输入手机号或邮箱"
-              required
-              autocomplete="email"
-            />
+            <label for="email">邮箱</label>
+            <input id="email" v-model.trim="email" type="email" placeholder="请输入邮箱" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">手机号</label>
+            <input id="phone" v-model.trim="phone" type="text" placeholder="请输入手机号" required />
           </div>
 
           <div class="form-group">
             <label for="password">密码</label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              placeholder="请输入密码"
-              required
-              autocomplete="new-password"
-            />
+            <input id="password" v-model="password" type="password" placeholder="请输入密码" required />
           </div>
 
           <div class="form-group">
             <label for="confirmPassword">确认密码</label>
-            <input
-              id="confirmPassword"
-              v-model="confirmPassword"
-              type="password"
-              placeholder="请再次输入密码"
-              required
-              autocomplete="new-password"
-            />
+            <input id="confirmPassword" v-model="confirmPassword" type="password" placeholder="请再次输入密码" required />
+          </div>
+
+          <div class="form-group">
+            <label>性别</label>
+            <div>
+              <label><input type="radio" value="0" v-model="gender" /> 男</label>
+              <label style="margin-left: 20px;"><input type="radio" value="1" v-model="gender" /> 女</label>
+            </div>
           </div>
 
           <button type="submit" class="btn-register">注册</button>
@@ -72,31 +54,67 @@
 </template>
 
 <script>
+import { addUser } from "@/api/users/users";
+
 export default {
   name: "UserRegister",
   data() {
     return {
       username: "",
-      account: "",
+      email: "",
+      phone: "",
       password: "",
       confirmPassword: "",
+      gender: "0",
     };
   },
   methods: {
-    handleRegister() {
-      if (!this.username || !this.account || !this.password || !this.confirmPassword) {
+    async handleRegister() {
+      if (!this.username || !this.email || !this.phone || !this.password || !this.confirmPassword) {
         alert("请填写完整信息");
         return;
       }
+
       if (this.password !== this.confirmPassword) {
         alert("两次密码输入不一致");
         return;
       }
-      // 这里可以加手机号或邮箱格式校验
-      alert(`注册信息：
-用户名：${this.username}
-账号：${this.account}
-密码：${this.password}`);
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^1[3-9]\d{9}$/;
+
+      if (!emailRegex.test(this.email)) {
+        alert("请输入有效的邮箱");
+        return;
+      }
+
+      if (!phoneRegex.test(this.phone)) {
+        alert("请输入有效的手机号");
+        return;
+      }
+
+      const data = {
+        username: this.username,
+        password: this.password,
+        email: this.email,
+        phone: this.phone,
+        gender: parseInt(this.gender),
+        userType: 0,
+        userurl: "",
+      };
+
+      try {
+        const res = await addUser(data);
+        if (res.code === 200) {
+          alert("注册成功！");
+          this.$router.replace("/user-login");
+        } else {
+          alert("注册失败：" + res.msg);
+        }
+      } catch (error) {
+        console.error("注册失败", error);
+        alert("网络错误或服务器异常");
+      }
     },
   },
 };
@@ -157,24 +175,21 @@ export default {
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   height: 40px;
   padding: 0 12px;
   border: 1px solid #9ca3af;
   border-radius: 4px;
   font-size: 15px;
-  box-sizing: border-box;
   background-color: #2d3748;
   color: #f9fafb;
   transition: border-color 0.3s;
 }
 
-.form-group input::placeholder {
-  color: #cbd5e1;
-}
-
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: #3b82f6;
   outline: none;
   background-color: #1f2937;
