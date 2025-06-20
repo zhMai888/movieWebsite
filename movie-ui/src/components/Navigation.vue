@@ -82,7 +82,7 @@
       </div>
 
       <!-- 用户头像 -->
-      <router-link to="/user" class="user-avatar">
+      <router-link to="/myself" class="user-avatar">
         <img :src="userAvatar" alt="用户头像" class="avatar-image" />
         <span>{{ usename }}</span>
       </router-link>
