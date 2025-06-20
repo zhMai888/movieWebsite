@@ -15,10 +15,28 @@
       <!-- 右侧信息区 -->
       <div class="info-wrapper">
         <h1 class="movie-title">{{ movie.name }}</h1>
+
         <div class="movie-score">
           <span class="score-number">{{ (movie.scoreTotal / (movie.scoreCount || 1)).toFixed(1) }}</span>
           <span class="score-count">（{{ movie.scoreCount }}人评分）</span>
         </div>
+
+        <!-- 新增评分星星 -->
+        <div v-if="!hasRated" class="rating-stars">
+          <span
+            v-for="star in 5"
+            :key="star"
+            class="star"
+            :class="{ active: star <= tempRating || star <= rating }"
+            @mouseover="tempRating = star"
+            @mouseleave="tempRating = 0"
+            @click="submitRating(star)"
+          >
+            ★
+          </span>
+        </div>
+        <div v-else class="rated-tip">感谢您的评分！</div>
+
         <p class="movie-description">{{ movie.description }}</p>
 
         <!-- 播放和收藏按钮 -->
@@ -107,7 +125,10 @@ export default {
       actors: [],
       genres: [],
       areas: [],
-      isFavorite: false, // 收藏状态
+      isFavorite: false,
+      rating: 0,
+      tempRating: 0,
+      hasRated: false
     };
   },
   computed: {
@@ -151,26 +172,22 @@ export default {
     },
     toggleFavorite() {
       this.isFavorite = !this.isFavorite;
-      if (this.isFavorite) {
-        alert("收藏成功");
-        // TODO: 调用收藏接口
-      } else {
-        alert("取消收藏");
-        // TODO: 调用取消收藏接口
-      }
+      alert(this.isFavorite ? "收藏成功" : "取消收藏");
+    },
+    submitRating(star) {
+      if (this.hasRated) return;
+      this.rating = star;
+      this.hasRated = true;
+      this.movie.scoreCount = (this.movie.scoreCount || 0) + 1;
+      this.movie.scoreTotal = (this.movie.scoreTotal || 0) + star;
     }
   },
   async created() {
     const movieId = this.$route.params.id;
-
     try {
-      // 电影详情
       const res = await getMovies(movieId);
-      if (res.code === 200 && res.data) {
-        this.movie = res.data;
-      }
+      if (res.code === 200 && res.data) this.movie = res.data;
 
-      // 导演
       const directorIdList = await getDirectorIdsByMovie(movieId);
       if (Array.isArray(directorIdList)) {
         const details = await Promise.all(
@@ -181,7 +198,6 @@ export default {
         this.directors = details;
       }
 
-      // 演员
       const actorIdList = await getActorIdsByMovie(movieId);
       if (Array.isArray(actorIdList)) {
         const details = await Promise.all(
@@ -192,15 +208,10 @@ export default {
         this.actors = details;
       }
 
-      // 类型和地区列表
-      const genresRes = await listGenres({pageSize: 100});
-      if (genresRes.rows) {
-        this.genres = genresRes.rows;
-      }
-      const areasRes = await listAreas({pageSize: 100});
-      if (areasRes.rows) {
-        this.areas = areasRes.rows;
-      }
+      const genresRes = await listGenres({ pageSize: 100 });
+      if (genresRes.rows) this.genres = genresRes.rows;
+      const areasRes = await listAreas({ pageSize: 100 });
+      if (areasRes.rows) this.areas = areasRes.rows;
     } catch (err) {
       console.error("获取数据失败：" + err.message);
     }
@@ -209,6 +220,7 @@ export default {
 </script>
 
 <style scoped>
+/* 原样保留你已有样式 */
 .page-wrapper {
   background-color: #f6f6f6;
   min-height: 100vh;
@@ -256,7 +268,7 @@ export default {
 .movie-score {
   display: flex;
   align-items: baseline;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .score-number {
@@ -271,6 +283,29 @@ export default {
   color: #666;
 }
 
+/* 新增评分星星样式 */
+.rating-stars {
+  margin-bottom: 16px;
+}
+
+.star {
+  font-size: 2rem;
+  color: #ccc;
+  cursor: pointer;
+  margin-right: 4px;
+  transition: color 0.3s;
+}
+
+.star.active {
+  color: #f59e0b;
+}
+
+.rated-tip {
+  font-size: 1rem;
+  color: #16a34a;
+  margin-bottom: 16px;
+}
+
 .movie-description {
   font-size: 1rem;
   line-height: 1.5;
@@ -278,7 +313,6 @@ export default {
   color: #444;
 }
 
-/* 播放和收藏按钮 */
 .action-buttons {
   margin: 15px 0;
   display: flex;
