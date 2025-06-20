@@ -289,6 +289,7 @@ export default {
 }
 
 /* 响应式设计 */
+
 @media (min-width: 768px) {
   .movie-card-wrapper {
     width: 33.33%;
