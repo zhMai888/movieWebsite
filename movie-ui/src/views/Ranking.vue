@@ -18,24 +18,31 @@
       <!-- 排行榜内容 -->
       <div class="rankings">
         <RankSection
-          v-if="activeTab === 'week'"
-          title="周播放排行"
-          :movies="topWeekList"
-          playKey="weekcount"
+          v-if="activeTab === 'total'"
+          title="播放量总播放排行"
+          :movies="topTotalList"
+          playKey="count"
           @select="goToDetail"
         />
         <RankSection
           v-if="activeTab === 'month'"
-          title="月播放排行"
+          title="播放量月播放排行"
           :movies="topMonthList"
           playKey="monthcount"
           @select="goToDetail"
         />
         <RankSection
-          v-if="activeTab === 'total'"
-          title="总播放排行"
-          :movies="topTotalList"
-          playKey="count"
+          v-if="activeTab === 'week'"
+          title="播放量周播放排行"
+          :movies="topWeekList"
+          playKey="weekcount"
+          @select="goToDetail"
+        />
+        <RankSection
+          v-if="activeTab === 'rating'"
+          title="好评排行"
+          :movies="topRatingList"
+          playKey="avgScore"
           @select="goToDetail"
         />
       </div>
@@ -50,21 +57,20 @@ import RankSection from '@/components/RankSection.vue'
 
 export default {
   name: 'MovieRankings',
-  components: {
-    Navigation,
-    RankSection
-  },
+  components: {Navigation, RankSection},
   data() {
     return {
       movies: [],
       topWeekList: [],
       topMonthList: [],
       topTotalList: [],
-      activeTab: 'week',
+      topRatingList: [],
+      activeTab: 'total',
       tabs: [
-        { key: 'week', label: '周排行' },
-        { key: 'month', label: '月排行' },
-        { key: 'total', label: '总排行' }
+        {key: 'total', label: '总排行'},
+        {key: 'month', label: '月排行'},
+        {key: 'week', label: '周排行'},
+        {key: 'rating', label: '好评排行'}
       ]
     }
   },
@@ -73,19 +79,34 @@ export default {
       this.$router.push(`/movies/${id}`)
     },
     processRankings() {
+      // 周排行
       const sortedWeek = [...this.movies].sort((a, b) => (b.weekcount || 0) - (a.weekcount || 0))
+      // 月排行
       const sortedMonth = [...this.movies].sort((a, b) => (b.monthcount || 0) - (a.monthcount || 0))
+      // 总排行
       const sortedTotal = [...this.movies].sort((a, b) => (b.count || 0) - (a.count || 0))
+
+      // 好评排行，计算平均分，排除无评分电影
+      const moviesWithAvgScore = this.movies
+        .filter(m => m.scoreCount > 0)
+        .map(m => ({
+          ...m,
+          avgScore: m.scoreTotal / m.scoreCount
+        }))
+        .sort((a, b) => b.avgScore - a.avgScore)
+
       this.topWeekList = sortedWeek.slice(0, 15)
       this.topMonthList = sortedMonth.slice(0, 15)
       this.topTotalList = sortedTotal.slice(0, 15)
+      this.topRatingList = moviesWithAvgScore.slice(0, 15)
     }
   },
   mounted() {
-    listMovies({ pageNum: 1, pageSize: 1000 })
+    listMovies({pageNum: 1, pageSize: 1000})
       .then(res => {
         if (res.code === 0) {
           this.movies = res.rows || []
+          console.log('调试电影列表', this.movies)
           this.processRankings()
         } else {
           console.error('接口返回异常:', res.msg)
@@ -104,12 +125,11 @@ export default {
   margin: 0 auto;
   padding: 20px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #1f2937; /* 深色字体 */
-  background-color: #ffffff; /* 白色背景 */
+  color: #1f2937;
+  background-color: #ffffff;
   min-height: 100vh;
 }
 
-/* 顶部 tab 按钮组 */
 .tab-header {
   display: flex;
   justify-content: center;
@@ -121,24 +141,23 @@ export default {
   padding: 10px 20px;
   border-radius: 9999px;
   border: none;
-  background-color: #e5e7eb; /* 浅灰背景 */
-  color: #374151; /* 深灰字体 */
+  background-color: #e5e7eb;
+  color: #374151;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .tab-button:hover {
-  background-color: #d1d5db; /* 更浅的灰色 */
+  background-color: #d1d5db;
   color: #111827;
 }
 
 .tab-button.active {
-  background-color: #3b82f6; /* 蓝色激活背景 */
+  background-color: #3b82f6;
   color: white;
 }
 
-/* 排行榜容器 */
 .rankings {
   display: flex;
   flex-direction: column;
@@ -147,9 +166,8 @@ export default {
 
 section {
   flex: 1;
-  background-color: #ffffff; /* 白色背景 */
+  background-color: #ffffff;
   padding: 0 16px 20px 16px;
-  border-bottom: 1px solid #e5e7eb; /* 浅色边框 */
+  border-bottom: 1px solid #e5e7eb;
 }
-
 </style>

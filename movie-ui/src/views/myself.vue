@@ -168,6 +168,10 @@ export default {
 
         const paymentUrl = `http://localhost:8080/alipay/pay?outTradeNo=${outTradeNo}&totalAmount=8.88&subject=购买VIP`
         window.location.href = paymentUrl
+        setTimeout(()=>{
+          this.userInfo.userType = 1
+          sessionStorage.setItem('userId', this.userInfo)
+        },2000)
       } catch (error) {
         console.error('支付请求失败:', error)
         this.$message.error('支付请求失败，请稍后重试')
